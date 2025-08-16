@@ -1,0 +1,17 @@
+user_id,username,password,role,student_id,professor_id
+1,user1,hashed_pw_user1,student,1,
+2,user2,hashed_pw_user2,student,2,
+3,user3,hashed_pw_user3,student,3,
+4,user4,hashed_pw_user4,student,4,
+5,user5,hashed_pw_user5,student,5,
+6,user6,hashed_pw_user6,student,6,
+7,user7,hashed_pw_user7,student,7,
+8,user8,hashed_pw_user8,student,8,
+9,user9,hashed_pw_user9,student,9,
+10,user10,hashed_pw_user10,student,10,
+11,user11,hashed_pw_user11,professor,,1
+12,user12,hashed_pw_user12,professor,,2
+13,user13,hashed_pw_user13,professor,,3
+14,user14,hashed_pw_user14,professor,,4
+15,user15,hashed_pw_user15,professor,,5
+,admin1,hashed_pw_admin,admin,admin1,
