@@ -6,8 +6,8 @@
 *~
 
 # Build artifacts
-UniPortalBackend/bin/
-UniPortalBackend/obj/
+backend/bin/
+backend/obj/
 *.dll
 *.exe
 *.pdb

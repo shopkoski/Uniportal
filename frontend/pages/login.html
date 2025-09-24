@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Cache bust: <?php echo time(); ?> -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1a4a5e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1a4a5e;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a4a5e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-button:hover {
+            background-color: #153a4a;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .signup-link a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .language-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .language-buttons button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .language-buttons button:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+        }
+        
+        .language-buttons img {
+            width: 20px;
+            height: 15px;
+            border-radius: 2px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-buttons">
+        <button onclick="changeLanguage('mk')" title="Македонски">
+            <span style="font-size: 12px; color: white;">MK</span>
+        </button>
+        <button onclick="changeLanguage('en')" title="English">
+            <span style="font-size: 12px; color: white;">EN</span>
+        </button>
+        <button onclick="changeLanguage('al')" title="Shqip">
+            <span style="font-size: 12px; color: white;">AL</span>
+        </button>
+    </div>
+    <div class="login-card" id="loginCard">
+        <h1 class="login-title">Log in</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <input type="email" id="email" class="form-input" placeholder="johndoe@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" class="form-input" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-button">Log in</button>
+        </form>
+        <div class="signup-link">
+            <a href="#" id="signupLink">or, sign up</a>
+        </div>
+        <div id="message" style="margin-top: 10px; text-align: center; font-size: 14px;"></div>
+    </div>
+
+    <div class="login-card" id="registerCard" style="display: none;">
+        <h1 class="login-title">Sign up</h1>
+        <form id="registerForm">
+            <div class="form-group">
+                <input type="text" id="firstName" class="form-input" placeholder="First Name" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="lastName" class="form-input" placeholder="Last Name" required>
+            </div>
+            <div class="form-group">
+                <input type="email" id="registerEmail" class="form-input" placeholder="johndoe@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="registerPassword" class="form-input" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-button">Sign up</button>
+        </form>
+        <div class="signup-link">
+            <a href="#" id="loginLink">or, log in</a>
+        </div>
+        <div id="registerMessage" style="margin-top: 10px; text-align: center; font-size: 14px;"></div>
+    </div>
+
+    <script>
+        // Toggle between login and register forms
+        document.getElementById('signupLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('registerCard').style.display = 'block';
+        });
+
+        document.getElementById('loginLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'block';
+        });
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch('http://localhost:5104/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store token and user info
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = 'Login successful! Redirecting...';
+                    
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.href = 'home.php';
+                    }, 1000);
+                } else {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = data.message || 'Login failed';
+                }
+            } catch (error) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                console.error('Error:', error);
+            }
+        });
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const messageDiv = document.getElementById('registerMessage');
+            
+            try {
+                const response = await fetch('http://localhost:5104/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ firstName, lastName, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store token and user info
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = 'Registration successful! Redirecting...';
+                    
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.href = 'home.php';
+                    }, 1000);
+                } else {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = data.message || 'Registration failed';
+                }
+            } catch (error) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+    <script src="../assets/js/translations.js"></script>
+    <script>
+        // Update login form text based on language
+        function updateLoginForm() {
+            const loginTitle = document.querySelector('.login-title');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const loginButton = document.querySelector('.login-button');
+            
+            if (loginTitle) loginTitle.textContent = t('login');
+            if (emailInput) emailInput.placeholder = t('email');
+            if (passwordInput) passwordInput.placeholder = t('password') || 'Password';
+            if (loginButton) loginButton.textContent = t('login');
+        }
+        
+        // Override the changeLanguage function to also update login form
+        const originalChangeLanguage = window.changeLanguage;
+        window.changeLanguage = function(lang) {
+            originalChangeLanguage(lang);
+            updateLoginForm();
+        };
+        
+        // Update form on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLoginForm();
+        });
+    </script>
+</body>
+</html>
