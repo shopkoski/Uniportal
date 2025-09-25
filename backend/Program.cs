@@ -56,10 +56,6 @@ builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
-// Configure port for Railway
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
