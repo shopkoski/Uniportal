@@ -26,9 +26,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add Entity Framework
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Entity Framework (temporarily disabled for initial deployment)
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -58,22 +58,8 @@ var app = builder.Build();
 
 Console.WriteLine("Application built successfully. Starting database setup...");
 
-// Run database migrations on startup (with error handling)
-try
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate();
-        Console.WriteLine("Database migrations completed successfully.");
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error running migrations: {ex.Message}");
-    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-    // Don't crash the app if migrations fail
-}
+// Skip database migrations for now to get the app running
+Console.WriteLine("Skipping database migrations for initial deployment...");
 
 Console.WriteLine("Database setup completed. Configuring HTTP pipeline...");
 
