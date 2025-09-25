@@ -7,11 +7,19 @@ WORKDIR /app
 # Copy the application files
 COPY . .
 
-# Expose the port
-EXPOSE $PORT
+# Create a startup script that handles the port dynamically
+RUN echo '#!/bin/bash\n\
+# Get the port from Railway environment variable\n\
+PORT=${PORT:-8080}\n\
+echo "Starting PHP server on port $PORT"\n\
+\n\
+# Start the PHP development server\n\
+exec php -S 0.0.0.0:$PORT' > /usr/local/bin/start.sh
 
-# Set environment variable for port
-ENV PORT=$PORT
+RUN chmod +x /usr/local/bin/start.sh
 
-# Start the PHP development server
-ENTRYPOINT ["php", "-S", "0.0.0.0:$PORT"]
+# Expose port 8080 (Railway will map this to their assigned port)
+EXPOSE 8080
+
+# Use the startup script
+CMD ["/usr/local/bin/start.sh"]
