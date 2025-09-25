@@ -10,5 +10,8 @@ COPY . .
 # Expose the port
 EXPOSE $PORT
 
+# Set environment variable for port
+ENV PORT=$PORT
+
 # Start the PHP development server
-CMD ["php", "-S", "0.0.0.0:$PORT"]
+ENTRYPOINT ["php", "-S", "0.0.0.0:$PORT"]
