@@ -73,16 +73,14 @@ function create_tables(PDO $pdo): void {
     // Create Users table (for authentication)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS Users (
-            UserID INT PRIMARY KEY AUTO_INCREMENT,
-            Email VARCHAR(255) UNIQUE NOT NULL,
-            PasswordHash VARCHAR(255) NOT NULL,
-            Role ENUM('Admin', 'Student', 'Professor') NOT NULL,
-            FirstName VARCHAR(100) NOT NULL,
-            LastName VARCHAR(100) NOT NULL,
-            IsActive BOOLEAN DEFAULT TRUE,
-            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_email (Email),
-            INDEX idx_role (Role)
+            user_id INT PRIMARY KEY AUTO_INCREMENT,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            role ENUM('admin', 'student', 'professor') NOT NULL,
+            student_id INT DEFAULT NULL,
+            professor_id INT DEFAULT NULL,
+            INDEX idx_username (username),
+            INDEX idx_role (role)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
     
@@ -116,7 +114,7 @@ function import_csv_data(PDO $pdo): void {
     
     // Import Users
     import_csv_file($pdo, $csvDir . 'Users-Table 1.csv', 'Users', [
-        'UserID', 'Email', 'PasswordHash', 'Role', 'FirstName', 'LastName', 'IsActive', 'CreatedAt'
+        'user_id', 'username', 'password', 'role', 'student_id', 'professor_id'
     ]);
     
     echo "✅ CSV data imported successfully!\n";
@@ -137,12 +135,12 @@ function import_csv_file(PDO $pdo, string $filePath, string $tableName, array $c
     }
     
     // Skip header row
-    fgetcsv($handle);
+    fgetcsv($handle, 0, ',', '"', '\\');
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO $tableName (" . implode(', ', $columns) . ") VALUES (" . str_repeat('?,', count($columns) - 1) . "?)");
     
     $rowCount = 0;
-    while (($data = fgetcsv($handle)) !== false) {
+    while (($data = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
         if (count($data) >= count($columns)) {
             $stmt->execute($data);
             $rowCount++;
