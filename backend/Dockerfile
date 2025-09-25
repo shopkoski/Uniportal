@@ -33,6 +33,7 @@ EXPOSE 8080
 
 # Set the environment variable for the port
 ENV ASPNETCORE_URLS=http://+:8080
+ENV PORT=8080
 
 # Start the application
 ENTRYPOINT ["dotnet", "UniPortalBackend.dll"]
