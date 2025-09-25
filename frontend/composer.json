@@ -1,0 +1,20 @@
+{
+    "name": "uniportal/frontend",
+    "description": "UniPortal Frontend Application",
+    "type": "project",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {}
+    },
+    "scripts": {},
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
