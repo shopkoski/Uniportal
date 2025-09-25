@@ -1,5 +1,5 @@
-# Use the official .NET 9 SDK image
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+# Use the official .NET 8 SDK image
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 # Set the working directory
 WORKDIR /app
