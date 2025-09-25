@@ -30,29 +30,29 @@ builder.Services.AddCors(options =>
 // builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
-                builder.Configuration["Jwt:Key"] ?? "your-super-secret-key-with-at-least-32-characters")),
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "UniPortal",
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "UniPortalUsers",
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+// Temporarily disable JWT for simple testing
+// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+//     .AddJwtBearer(options =>
+//     {
+//         options.TokenValidationParameters = new TokenValidationParameters
+//         {
+//             ValidateIssuerSigningKey = true,
+//             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+//                 builder.Configuration["Jwt:Key"] ?? "your-super-secret-key-with-at-least-32-characters")),
+//             ValidateIssuer = true,
+//             ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "UniPortal",
+//             ValidateAudience = true,
+//             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "UniPortalUsers",
+//             ValidateLifetime = true,
+//             ClockSkew = TimeSpan.Zero
+//         };
+//     });
 
 // Add Authorization
 builder.Services.AddAuthorization();
 
 // Add JWT Service
-builder.Services.AddScoped<JwtService>();
+// builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
@@ -72,7 +72,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-app.UseAuthentication();
+// app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
