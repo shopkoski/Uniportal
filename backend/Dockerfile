@@ -22,8 +22,5 @@ EXPOSE 8080
 # Set the environment variable for the port
 ENV ASPNETCORE_URLS=http://+:8080
 
-# Copy migration script
-COPY run-migrations.sh .
-
-# Start the application with migrations
-ENTRYPOINT ["sh", "-c", "./run-migrations.sh && dotnet run --project UniPortalBackend.csproj --configuration Release"]
+# Start the application
+ENTRYPOINT ["dotnet", "run", "--project", "UniPortalBackend.csproj", "--configuration", "Release"]

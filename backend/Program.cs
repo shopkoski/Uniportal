@@ -56,20 +56,26 @@ builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
-// Run database migrations on startup
-using (var scope = app.Services.CreateScope())
+Console.WriteLine("Application built successfully. Starting database setup...");
+
+// Run database migrations on startup (with error handling)
+try
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
+    using (var scope = app.Services.CreateScope())
     {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate();
         Console.WriteLine("Database migrations completed successfully.");
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error running migrations: {ex.Message}");
-    }
 }
+catch (Exception ex)
+{
+    Console.WriteLine($"Error running migrations: {ex.Message}");
+    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+    // Don't crash the app if migrations fail
+}
+
+Console.WriteLine("Database setup completed. Configuring HTTP pipeline...");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -88,4 +94,5 @@ app.MapControllers();
 // Add health check endpoint
 app.MapHealthChecks("/health");
 
+Console.WriteLine("Application configured. Starting server...");
 app.Run();
