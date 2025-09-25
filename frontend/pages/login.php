@@ -202,8 +202,8 @@
             const messageDiv = document.getElementById('message');
             
             try {
-                console.log('Attempting login to: http://localhost:5104/api/auth/login');
-                const response = await fetch('http://localhost:5104/api/auth/login', {
+                console.log('Attempting login to: https://uniportal-backend-production.up.railway.app/api/auth/login');
+                const response = await fetch('https://uniportal-backend-production.up.railway.app/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -249,7 +249,7 @@
             const messageDiv = document.getElementById('registerMessage');
             
             try {
-                const response = await fetch('http://localhost:5104/api/auth/register', {
+                const response = await fetch('https://uniportal-backend-production.up.railway.app/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
