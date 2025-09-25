@@ -26,9 +26,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add Entity Framework (temporarily disabled for initial deployment)
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Entity Framework
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -58,8 +58,8 @@ var app = builder.Build();
 
 Console.WriteLine("Application built successfully. Starting database setup...");
 
-// Skip database migrations for now to get the app running
-Console.WriteLine("Skipping database migrations for initial deployment...");
+// Database is already set up with CSV data, no migrations needed
+Console.WriteLine("Database already configured with CSV data...");
 
 Console.WriteLine("Database setup completed. Configuring HTTP pipeline...");
 
