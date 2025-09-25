@@ -23,4 +23,4 @@ EXPOSE $PORT
 ENV ASPNETCORE_URLS=http://+:$PORT
 
 # Start the application
-CMD ["dotnet", "run", "--project", "UniPortalBackend.csproj", "--configuration", "Release"]
+ENTRYPOINT ["dotnet", "run", "--project", "UniPortalBackend.csproj", "--configuration", "Release"]
