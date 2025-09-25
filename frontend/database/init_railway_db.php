@@ -70,9 +70,10 @@ function create_tables(PDO $pdo): void {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
     
-    // Create Users table (for authentication)
+    // Drop and recreate Users table (for authentication)
+    $pdo->exec("DROP TABLE IF EXISTS Users");
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Users (
+        CREATE TABLE Users (
             user_id INT PRIMARY KEY AUTO_INCREMENT,
             username VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
@@ -102,9 +103,9 @@ function import_csv_data(PDO $pdo): void {
         'professor_id', 'first_name', 'last_name', 'email', 'department'
     ]);
     
-    // Import Courses
+    // Import Courses (only 3 columns in CSV)
     import_csv_file($pdo, $csvDir . 'Courses-Table 1.csv', 'Courses_Table_1', [
-        'course_id', 'course_name', 'credits', '_2'
+        'course_id', 'course_name', 'credits'
     ]);
     
     // Import Enrollments
