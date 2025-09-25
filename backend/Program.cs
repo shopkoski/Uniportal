@@ -26,9 +26,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add Entity Framework
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Entity Framework (temporarily disabled to get backend running)
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
