@@ -1,3 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using UniPortalBackend.Data;
+using UniPortalBackend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,56 +23,59 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add Entity Framework
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                builder.Configuration["Jwt:Key"] ?? "your-super-secret-key-with-at-least-32-characters")),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "UniPortal",
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "UniPortalUsers",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// Add Authorization
+builder.Services.AddAuthorization();
+
+// Add JWT Service
+builder.Services.AddScoped<JwtService>();
+
 var app = builder.Build();
 
+Console.WriteLine("Application built successfully. Starting database setup...");
+
+// Database is already set up with CSV data, no migrations needed
+Console.WriteLine("Database already configured with CSV data...");
+
+Console.WriteLine("Database setup completed. Configuring HTTP pipeline...");
+
 // Configure the HTTP request pipeline.
-app.UseCors("AllowAll");
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
-// Simple health check
-app.MapGet("/health", () => new { status = "healthy", timestamp = DateTime.UtcNow });
+// Add health check endpoint
+app.MapHealthChecks("/health");
 
-// Simple test endpoint
-app.MapGet("/api/test", () => new { message = "Backend is working!", timestamp = DateTime.UtcNow });
-
-// Simple login endpoint
-app.MapPost("/api/auth/login", (LoginRequest request) =>
-{
-    // Hardcoded users for testing
-    var users = new[]
-    {
-        new { Email = "admin@uniportal.com", Password = "admin123", Role = "Admin", FirstName = "Admin", LastName = "User" },
-        new { Email = "john@student.uniportal.com", Password = "admin123", Role = "Student", FirstName = "John", LastName = "Doe" },
-        new { Email = "jane@student.uniportal.com", Password = "admin123", Role = "Student", FirstName = "Jane", LastName = "Smith" },
-        new { Email = "k.stefanovska@univ.mk", Password = "admin123", Role = "Professor", FirstName = "Kristina", LastName = "Stefanovska" }
-    };
-
-    var user = users.FirstOrDefault(u => u.Email == request.Email && u.Password == request.Password);
-
-    if (user == null)
-    {
-        return Results.BadRequest(new { message = "Invalid email or password" });
-    }
-
-    return Results.Ok(new
-    {
-        token = "fake-jwt-token-for-testing",
-        user = new
-        {
-            email = user.Email,
-            role = user.Role,
-            firstName = user.FirstName,
-            lastName = user.LastName
-        }
-    });
-});
-
+Console.WriteLine("Application configured. Starting server...");
 app.Run();
-
-public class LoginRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
