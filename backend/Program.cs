@@ -23,9 +23,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add Entity Framework
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Entity Framework (temporarily disabled to get backend running)
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -48,8 +48,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add Authorization
 builder.Services.AddAuthorization();
 
-// Add JWT Service
-builder.Services.AddScoped<JwtService>();
+// Add JWT Service (temporarily disabled)
+// builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
