@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UniPortalBackend.Data;
-using UniPortalBackend.Models;
-using UniPortalBackend.Services;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace UniPortalBackend.Controllers
 {
@@ -10,137 +10,76 @@ namespace UniPortalBackend.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly JwtService _jwtService;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(ApplicationDbContext context, JwtService jwtService)
+        public AuthController(IConfiguration configuration)
         {
-            _context = context;
-            _jwtService = jwtService;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromBody] LoginRequest request)
         {
-            try
+            // Hardcoded users for testing
+            var users = new[]
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+                new { Email = "admin@uniportal.com", Password = "admin123", Role = "Admin", FirstName = "Admin", LastName = "User" },
+                new { Email = "john@student.uniportal.com", Password = "admin123", Role = "Student", FirstName = "John", LastName = "Doe" },
+                new { Email = "jane@student.uniportal.com", Password = "admin123", Role = "Student", FirstName = "Jane", LastName = "Smith" },
+                new { Email = "k.stefanovska@univ.mk", Password = "admin123", Role = "Professor", FirstName = "Kristina", LastName = "Stefanovska" }
+            };
 
-                if (user == null)
-                {
-                    return BadRequest(new LoginResponse
-                    {
-                        Success = false,
-                        Message = "Invalid email or password"
-                    });
-                }
+            var user = users.FirstOrDefault(u => u.Email == request.Email && u.Password == request.Password);
 
-                if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-                {
-                    return BadRequest(new LoginResponse
-                    {
-                        Success = false,
-                        Message = "Invalid email or password"
-                    });
-                }
-
-                var token = _jwtService.GenerateToken(user);
-
-                return Ok(new LoginResponse
-                {
-                    Success = true,
-                    Token = token,
-                    Message = "Login successful",
-                    User = new UserInfo
-                    {
-                        Id = user.Id,
-                        Email = user.Email,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Role = user.Role
-                    }
-                });
-            }
-            catch (Exception ex)
+            if (user == null)
             {
-                return StatusCode(500, new LoginResponse
-                {
-                    Success = false,
-                    Message = "An error occurred during login"
-                });
+                return BadRequest(new { message = "Invalid email or password" });
             }
+
+            // Generate JWT token
+            var token = GenerateJwtToken(user.Email, user.Role);
+
+            return Ok(new
+            {
+                token = token,
+                user = new
+                {
+                    email = user.Email,
+                    role = user.Role,
+                    firstName = user.FirstName,
+                    lastName = user.LastName
+                }
+            });
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<LoginResponse>> Register([FromBody] RegisterRequest request)
+        private string GenerateJwtToken(string email, string role)
         {
-            try
+            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                _configuration["Jwt:Key"] ?? "your-super-secret-key-with-at-least-32-characters"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
             {
-                // Check if user already exists
-                var existingUser = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == request.Email);
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Role, role),
+                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
-                if (existingUser != null)
-                {
-                    return BadRequest(new LoginResponse
-                    {
-                        Success = false,
-                        Message = "User with this email already exists"
-                    });
-                }
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"] ?? "UniPortal",
+                audience: _configuration["Jwt:Audience"] ?? "UniPortalUsers",
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(24),
+                signingCredentials: creds);
 
-                // Create new user
-                var user = new User
-                {
-                    Email = request.Email,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    Role = "User",
-                    CreatedAt = DateTime.UtcNow,
-                    IsActive = true
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                var token = _jwtService.GenerateToken(user);
-
-                return Ok(new LoginResponse
-                {
-                    Success = true,
-                    Token = token,
-                    Message = "Registration successful",
-                    User = new UserInfo
-                    {
-                        Id = user.Id,
-                        Email = user.Email,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Role = user.Role
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new LoginResponse
-                {
-                    Success = false,
-                    Message = "An error occurred during registration"
-                });
-            }
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 
-    public class RegisterRequest
+    public class LoginRequest
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
     }
 }
-
-
-
