@@ -4,6 +4,7 @@ using UniPortalBackend.Models;
 using UniPortalBackend.Services;
 using System.Security.Cryptography;
 using System.Text;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +16,7 @@ builder.Services.AddSwaggerGen();
 // Add Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+        new MySqlServerVersion(new Version(8, 0, 21))));
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
