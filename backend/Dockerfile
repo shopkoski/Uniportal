@@ -17,10 +17,10 @@ COPY . .
 RUN dotnet build --configuration Release --no-restore
 
 # Expose the port (Railway will set this)
-EXPOSE 8080
+EXPOSE $PORT
 
 # Set the environment variable for the port
-ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=http://+:$PORT
 
 # Start the application
 ENTRYPOINT ["dotnet", "run", "--project", "UniPortalBackend.csproj", "--configuration", "Release"]
