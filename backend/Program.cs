@@ -1,25 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using UniPortalBackend.Data;
-using UniPortalBackend.Models;
-using UniPortalBackend.Services;
-using System.Security.Cryptography;
-using System.Text;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Add Entity Framework
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-        new MySqlServerVersion(new Version(8, 0, 21))));
-
-// Add JWT Service
-builder.Services.AddScoped<JwtService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -34,13 +18,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Ensure database is created and migrated (commented out for now to avoid startup issues)
-// using (var scope = app.Services.CreateScope())
-// {
-//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//     context.Database.EnsureCreated();
-// }
-
 // Configure the HTTP request pipeline.
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
@@ -53,7 +30,7 @@ app.MapGet("/health", () => new { status = "healthy", timestamp = DateTime.UtcNo
 // Test endpoint
 app.MapGet("/api/test", () => new { message = "Backend is working!", timestamp = DateTime.UtcNow });
 
-// Login endpoint (simplified for now)
+// Login endpoint
 app.MapPost("/api/auth/login", (LoginRequest request) =>
 {
     if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
@@ -61,7 +38,7 @@ app.MapPost("/api/auth/login", (LoginRequest request) =>
         return Results.BadRequest(new { message = "Email and password are required" });
     }
 
-    // Hardcoded users for testing (matching our database data)
+    // Hardcoded users for testing
     var users = new[]
     {
         new { Id = 1, Email = "admin@uniportal.com", Password = "admin123", Role = "Admin", FirstName = "Admin", LastName = "User" },
@@ -94,3 +71,26 @@ app.MapPost("/api/auth/login", (LoginRequest request) =>
 });
 
 app.Run();
+
+public class LoginRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public class LoginResponse
+{
+    public bool Success { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public UserInfo? User { get; set; }
+}
+
+public class UserInfo
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+}
