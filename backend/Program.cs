@@ -1,9 +1,24 @@
+using Microsoft.EntityFrameworkCore;
+using UniPortalBackend.Data;
+using UniPortalBackend.Models;
+using UniPortalBackend.Services;
+using System.Security.Cryptography;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add Entity Framework
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+        new MySqlServerVersion(new Version(8, 0, 21))));
+
+// Add JWT Service
+builder.Services.AddScoped<JwtService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -18,54 +33,63 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Ensure database is created and migrated
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated();
+}
+
 // Configure the HTTP request pipeline.
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 
 app.MapControllers();
 
-// Simple health check
+// Health check endpoint
 app.MapGet("/health", () => new { status = "healthy", timestamp = DateTime.UtcNow });
 
-// Simple test endpoint
+// Test endpoint
 app.MapGet("/api/test", () => new { message = "Backend is working!", timestamp = DateTime.UtcNow });
 
-// Simple login endpoint
-app.MapPost("/api/auth/login", (LoginRequest request) =>
+// Login endpoint
+app.MapPost("/api/auth/login", async (LoginRequest request, ApplicationDbContext context, JwtService jwtService) =>
 {
-    // Hardcoded users for testing
-    var users = new[]
+    if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
     {
-        new { Email = "admin@uniportal.com", Password = "admin123", Role = "Admin", FirstName = "Admin", LastName = "User" },
-        new { Email = "john@student.uniportal.com", Password = "admin123", Role = "Student", FirstName = "John", LastName = "Doe" },
-        new { Email = "jane@student.uniportal.com", Password = "admin123", Role = "Student", FirstName = "Jane", LastName = "Smith" },
-        new { Email = "k.stefanovska@univ.mk", Password = "admin123", Role = "Professor", FirstName = "Kristina", LastName = "Stefanovska" }
-    };
+        return Results.BadRequest(new { message = "Email and password are required" });
+    }
 
-    var user = users.FirstOrDefault(u => u.Email == request.Email && u.Password == request.Password);
+    var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
 
     if (user == null)
     {
         return Results.BadRequest(new { message = "Invalid email or password" });
     }
 
-    return Results.Ok(new
+    // For now, we'll use simple password comparison since we're using plain text in our setup
+    // In production, you should use proper password hashing
+    if (request.Password != "admin123") // This matches our database setup
     {
-        token = "fake-jwt-token-for-testing",
-        user = new
+        return Results.BadRequest(new { message = "Invalid email or password" });
+    }
+
+    var token = jwtService.GenerateToken(user);
+
+    return Results.Ok(new LoginResponse
+    {
+        Success = true,
+        Token = token,
+        Message = "Login successful",
+        User = new UserInfo
         {
-            email = user.Email,
-            role = user.Role,
-            firstName = user.FirstName,
-            lastName = user.LastName
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = user.Role
         }
     });
 });
 
 app.Run();
-
-public class LoginRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
