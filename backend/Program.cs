@@ -15,7 +15,7 @@ builder.Services.AddSwaggerGen();
 // Add Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-        new MySqlServerVersion(new Version(8, 0, 21))));
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
 // Add JWT Service
 builder.Services.AddScoped<JwtService>();
