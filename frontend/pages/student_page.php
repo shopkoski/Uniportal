@@ -914,8 +914,15 @@ $students = [];
             if (user) {
                 console.log('User found, rendering students with role:', user.role);
                 fetch('https://uniportal-backend-production.up.railway.app/api/students')
-                    .then(function(r) { return r.json(); })
-                    .then(function(students) { 
+                    .then(async function(r) {
+                        if (!r.ok) {
+                            const txt = await r.text();
+                            throw new Error('HTTP ' + r.status + ' ' + txt);
+                        }
+                        return r.json();
+                    })
+                    .then(function(payload) { 
+                        const students = Array.isArray(payload) ? payload : (payload && payload.data ? payload.data : []);
                         globalStudents = students; // Store globally
                         renderStudents(students);
                         checkUserRole();
@@ -1176,10 +1183,20 @@ $students = [];
             
             // Re-fetch to keep logic simple
             fetch('https://uniportal-backend-production.up.railway.app/api/students')
-                .then(r => r.json())
-                .then(students => {
+                .then(async r => {
+                    if (!r.ok) {
+                        const txt = await r.text();
+                        throw new Error('HTTP ' + r.status + ' ' + txt);
+                    }
+                    return r.json();
+                })
+                .then(payload => {
+                    const students = Array.isArray(payload) ? payload : (payload && payload.data ? payload.data : []);
                     globalStudents = students; // Update global array
                     renderStudents(students);
+                })
+                .catch(err => {
+                    console.error('Reload students after delete failed:', err);
                 });
             
             // Show success toast
