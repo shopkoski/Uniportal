@@ -1,3 +1,5 @@
+using MySqlConnector;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add CORS
@@ -60,43 +62,90 @@ app.MapPost("/api/auth/login", (LoginRequest request) =>
 });
 
 // TEMP endpoints to unblock the UI until full DB API is restored
-app.MapGet("/api/students", () =>
+app.MapGet("/api/students", async (HttpContext ctx) =>
 {
-    var students = new[]
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new MySqlConnection(connStr);
+    await conn.OpenAsync();
+    var cmd = new MySqlCommand("SELECT student_id, first_name, last_name, email, enrollment_year FROM Students", conn);
+    var reader = await cmd.ExecuteReaderAsync();
+    var results = new List<object>();
+    while (await reader.ReadAsync())
     {
-        new { student_id = 1, first_name = "John", last_name = "Doe", email = "john@student.uniportal.com", enrollment_year = 2022 },
-        new { student_id = 2, first_name = "Jane", last_name = "Smith", email = "jane@student.uniportal.com", enrollment_year = 2022 }
-    };
-    return Results.Ok(new { success = true, data = students });
+        results.Add(new
+        {
+            student_id = reader.GetInt32(0),
+            first_name = reader.GetString(1),
+            last_name = reader.GetString(2),
+            email = reader.GetString(3),
+            enrollment_year = reader.IsDBNull(4) ? null : reader.GetInt32(4)
+        });
+    }
+    return Results.Ok(new { success = true, data = results });
 });
 
-app.MapGet("/api/courses", () =>
+app.MapGet("/api/courses", async () =>
 {
-    var courses = new[]
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new MySqlConnection(connStr);
+    await conn.OpenAsync();
+    var cmd = new MySqlCommand("SELECT course_id, course_name, credits FROM Courses", conn);
+    var reader = await cmd.ExecuteReaderAsync();
+    var results = new List<object>();
+    while (await reader.ReadAsync())
     {
-        new { course_id = 1, course_name = "Databases", credits = 6 },
-        new { course_id = 2, course_name = "Web Development", credits = 6 }
-    };
-    return Results.Ok(new { success = true, data = courses });
+        results.Add(new
+        {
+            course_id = reader.GetInt32(0),
+            course_name = reader.GetString(1),
+            credits = reader.IsDBNull(2) ? null : reader.GetInt32(2)
+        });
+    }
+    return Results.Ok(new { success = true, data = results });
 });
 
-app.MapGet("/api/professors", () =>
+app.MapGet("/api/professors", async () =>
 {
-    var professors = new[]
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new MySqlConnection(connStr);
+    await conn.OpenAsync();
+    var cmd = new MySqlCommand("SELECT professor_id, first_name, last_name, email, department FROM Professors", conn);
+    var reader = await cmd.ExecuteReaderAsync();
+    var results = new List<object>();
+    while (await reader.ReadAsync())
     {
-        new { professor_id = 1, first_name = "Kristina", last_name = "Stefanovska", email = "k.stefanovska@univ.mk", department = "Computer Science" }
-    };
-    return Results.Ok(new { success = true, data = professors });
+        results.Add(new
+        {
+            professor_id = reader.GetInt32(0),
+            first_name = reader.GetString(1),
+            last_name = reader.GetString(2),
+            email = reader.GetString(3),
+            department = reader.IsDBNull(4) ? null : reader.GetString(4)
+        });
+    }
+    return Results.Ok(new { success = true, data = results });
 });
 
-app.MapGet("/api/grades", () =>
+app.MapGet("/api/grades", async () =>
 {
-    var grades = new[]
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new MySqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"SELECT enrollment_id, student_id, course_id, grade FROM Enrollments";
+    var cmd = new MySqlCommand(sql, conn);
+    var reader = await cmd.ExecuteReaderAsync();
+    var results = new List<object>();
+    while (await reader.ReadAsync())
     {
-        new { enrollment_id = 1, student_id = 1, course_id = 1, grade = 8.00 },
-        new { enrollment_id = 2, student_id = 2, course_id = 1, grade = 9.00 }
-    };
-    return Results.Ok(new { success = true, data = grades });
+        results.Add(new
+        {
+            enrollment_id = reader.GetInt32(0),
+            student_id = reader.GetInt32(1),
+            course_id = reader.GetInt32(2),
+            grade = reader.IsDBNull(3) ? null : reader.GetDecimal(3)
+        });
+    }
+    return Results.Ok(new { success = true, data = results });
 });
 
 app.Run();
