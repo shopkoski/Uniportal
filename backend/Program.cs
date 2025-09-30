@@ -59,6 +59,46 @@ app.MapPost("/api/auth/login", (LoginRequest request) =>
     });
 });
 
+// TEMP endpoints to unblock the UI until full DB API is restored
+app.MapGet("/api/students", () =>
+{
+    var students = new[]
+    {
+        new { student_id = 1, first_name = "John", last_name = "Doe", email = "john@student.uniportal.com", enrollment_year = 2022 },
+        new { student_id = 2, first_name = "Jane", last_name = "Smith", email = "jane@student.uniportal.com", enrollment_year = 2022 }
+    };
+    return Results.Ok(new { success = true, data = students });
+});
+
+app.MapGet("/api/courses", () =>
+{
+    var courses = new[]
+    {
+        new { course_id = 1, course_name = "Databases", credits = 6 },
+        new { course_id = 2, course_name = "Web Development", credits = 6 }
+    };
+    return Results.Ok(new { success = true, data = courses });
+});
+
+app.MapGet("/api/professors", () =>
+{
+    var professors = new[]
+    {
+        new { professor_id = 1, first_name = "Kristina", last_name = "Stefanovska", email = "k.stefanovska@univ.mk", department = "Computer Science" }
+    };
+    return Results.Ok(new { success = true, data = professors });
+});
+
+app.MapGet("/api/grades", () =>
+{
+    var grades = new[]
+    {
+        new { enrollment_id = 1, student_id = 1, course_id = 1, grade = 8.00 },
+        new { enrollment_id = 2, student_id = 2, course_id = 1, grade = 9.00 }
+    };
+    return Results.Ok(new { success = true, data = grades });
+});
+
 app.Run();
 
 public class LoginRequest
