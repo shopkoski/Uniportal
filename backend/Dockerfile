@@ -16,11 +16,8 @@ RUN dotnet publish "UniPortalBackend.csproj" -c Release -o /app/publish --no-res
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Railway provides PORT env; bind Kestrel to it
-ENV ASPNETCORE_URLS=http://+:$PORT
-
 COPY --from=build /app/publish .
 
+# Railway sets $PORT dynamically; expose default and fallback to 8080
 EXPOSE 8080
-
-ENTRYPOINT ["dotnet", "UniPortalBackend.dll"]
+ENTRYPOINT ["/bin/sh","-c","dotnet UniPortalBackend.dll --urls http://0.0.0.0:${PORT:-8080}"]

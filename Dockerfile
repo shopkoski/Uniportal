@@ -18,6 +18,6 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-# Railway sets $PORT dynamically; use shell entrypoint so $PORT expands at runtime
+# Railway sets $PORT dynamically; fall back to 8080 if missing
 EXPOSE 8080
-ENTRYPOINT ["/bin/sh","-c","dotnet UniPortalBackend.dll --urls http://0.0.0.0:$PORT"]
+ENTRYPOINT ["/bin/sh","-c","dotnet UniPortalBackend.dll --urls http://0.0.0.0:${PORT:-8080}"]
