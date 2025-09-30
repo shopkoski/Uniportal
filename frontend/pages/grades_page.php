@@ -888,7 +888,7 @@ function loadGrades() {
 
 function loadAllGrades() {
     // For admin, we'll use the existing getAllGrades data
-    fetch('../api/get_all_grades.php')
+    fetch('https://uniportal-backend-production.up.railway.app/api/grades')
         .then(response => {
             if (!response || !response.ok) {
                 throw new Error(`HTTP error! status: ${response ? response.status : 'No response'}`);
@@ -910,7 +910,8 @@ function loadAllGrades() {
 
 function loadStudentGrades(userEmail) {
     // First get the student ID for this user
-    fetch(`../api/get_student_id.php?email=${encodeURIComponent(userEmail)}`)
+    // For now, show all grades for students too (until per-student endpoint is added)
+    fetch('https://uniportal-backend-production.up.railway.app/api/grades')
         .then(response => {
             if (!response || !response.ok) {
                 throw new Error(`HTTP error! status: ${response ? response.status : 'No response'}`);
@@ -929,7 +930,7 @@ function loadStudentGrades(userEmail) {
             }
             
             // Now get the student's grades
-            return fetch(`../api/get_student_grades.php?student_id=${data.student_id}`);
+            return Promise.resolve(new Response(JSON.stringify({ data: [] }), { headers: { 'Content-Type': 'application/json' } }));
         })
         .then(response => {
             if (!response || !response.ok) {
@@ -1028,9 +1029,10 @@ function getGradeClass(letterGrade) {
 // Load form data for grade modal
 function loadFormData() {
     // Load students for grade form
-    fetch('../api/get_all_students.php')
+    fetch('https://uniportal-backend-production.up.railway.app/api/students')
         .then(response => response.json())
-        .then(students => {
+        .then(payload => {
+            const students = Array.isArray(payload) ? payload : (payload.data || []);
             const studentSelect = document.getElementById('gradeStudent');
             students.forEach(student => {
                 const option = document.createElement('option');
@@ -1042,9 +1044,10 @@ function loadFormData() {
         .catch(error => console.error('Error loading students:', error));
 
     // Load courses for grade form
-    fetch('../api/get_all_courses.php')
+    fetch('https://uniportal-backend-production.up.railway.app/api/courses')
         .then(response => response.json())
-        .then(courses => {
+        .then(payload => {
+            const courses = Array.isArray(payload) ? payload : (payload.data || []);
             const courseSelect = document.getElementById('gradeCourse');
             courses.forEach(course => {
                 const option = document.createElement('option');

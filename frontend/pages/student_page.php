@@ -913,7 +913,7 @@ $students = [];
             const user = Auth.getUser();
             if (user) {
                 console.log('User found, rendering students with role:', user.role);
-                fetch('../api/get_all_students.php')
+                fetch('https://uniportal-backend-production.up.railway.app/api/students')
                     .then(function(r) { return r.json(); })
                     .then(function(students) { 
                         globalStudents = students; // Store globally
@@ -1175,7 +1175,7 @@ $students = [];
             saveHiddenStudents(hidden);
             
             // Re-fetch to keep logic simple
-            fetch('../api/get_all_students.php')
+            fetch('https://uniportal-backend-production.up.railway.app/api/students')
                 .then(r => r.json())
                 .then(students => {
                     globalStudents = students; // Update global array

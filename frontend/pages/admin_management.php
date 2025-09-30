@@ -488,7 +488,7 @@ function showTab(tabName) {
 
 function loadFormData() {
     // Load professors for course form
-    fetch('../api/get_all_professors.php')
+    fetch('https://uniportal-backend-production.up.railway.app/api/professors')
         .then(response => response.json())
         .then(professors => {
             const professorSelect = document.getElementById('courseProfessor');
@@ -502,7 +502,7 @@ function loadFormData() {
         .catch(error => console.error('Error loading professors:', error));
 
     // Load students for grade form
-    fetch('../api/get_all_students.php')
+    fetch('https://uniportal-backend-production.up.railway.app/api/students')
         .then(response => response.json())
         .then(students => {
             const studentSelect = document.getElementById('gradeStudent');
@@ -516,7 +516,7 @@ function loadFormData() {
         .catch(error => console.error('Error loading students:', error));
 
     // Load courses for grade form
-    fetch('../api/get_all_courses.php')
+    fetch('https://uniportal-backend-production.up.railway.app/api/courses')
         .then(response => response.json())
         .then(courses => {
             const courseSelect = document.getElementById('gradeCourse');

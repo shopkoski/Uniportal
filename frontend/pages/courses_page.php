@@ -871,7 +871,7 @@ $courses = [];
 
     // Load professors for the course form
     function loadProfessors() {
-        fetch('../api/get_all_professors.php')
+        fetch('https://uniportal-backend-production.up.railway.app/api/professors')
             .then(r => r.json())
             .then(data => {
                 const professorSelect = document.getElementById('courseProfessor');
@@ -1018,7 +1018,7 @@ $courses = [];
                 const user = Auth.getUser();
                 if (user) {
                     console.log('User found, rendering courses with role:', user.role);
-                    fetch('../api/get_all_courses.php')
+                    fetch('https://uniportal-backend-production.up.railway.app/api/courses')
                         .then(function(r) { return r.json(); })
                         .then(function(courses) { 
                             renderCourses(courses);
@@ -1125,7 +1125,7 @@ $courses = [];
             showSuccessToast(`${courseName} has been deleted successfully.`);
             
             // Refresh the courses list
-            fetch('../api/get_all_courses.php').then(r => r.json()).then(renderCourses);
+            fetch('https://uniportal-backend-production.up.railway.app/api/courses').then(r => r.json()).then(renderCourses);
         });
     }
     </script>
