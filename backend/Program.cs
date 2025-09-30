@@ -21,8 +21,7 @@ app.UseCors("AllowAll");
 app.MapGet("/health", () => "OK");
 app.MapGet("/api/test", () => "Backend is working!");
 
-// Safety: minimal grades endpoint so it never 404s while deploy caches update
-app.MapGet("/api/grades", () => Results.Ok(new { success = true, data = Array.Empty<object>() }));
+// Safety: minimal grades endpoint removed - using full DB version below
 
 // Login endpoint
 app.MapPost("/api/auth/login", (LoginRequest request) =>
@@ -81,7 +80,7 @@ app.MapGet("/api/students", async (HttpContext ctx) =>
             first_name = reader.GetString(1),
             last_name = reader.GetString(2),
             email = reader.GetString(3),
-            enrollment_year = reader.IsDBNull(4) ? null : reader.GetInt32(4)
+            enrollment_year = reader.IsDBNull(4) ? (int?)null : reader.GetInt32(4)
         });
     }
     return Results.Ok(new { success = true, data = results });
@@ -101,7 +100,7 @@ app.MapGet("/api/courses", async () =>
         {
             course_id = reader.GetInt32(0),
             course_name = reader.GetString(1),
-            credits = reader.IsDBNull(2) ? null : reader.GetInt32(2)
+            credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2)
         });
     }
     return Results.Ok(new { success = true, data = results });
@@ -145,7 +144,7 @@ app.MapGet("/api/grades", async () =>
             enrollment_id = reader.GetInt32(0),
             student_id = reader.GetInt32(1),
             course_id = reader.GetInt32(2),
-            grade = reader.IsDBNull(3) ? null : reader.GetDecimal(3)
+            grade = reader.IsDBNull(3) ? (decimal?)null : reader.GetDecimal(3)
         });
     }
     return Results.Ok(new { success = true, data = results });
