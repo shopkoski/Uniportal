@@ -1,0 +1,30 @@
+# Ignore VCS and editor files
+.git
+.gitignore
+**/.DS_Store
+
+# Ignore frontend and assets (backend image doesn't need them)
+frontend/
+flags/
+student_course_system_data_large.xlsx
+
+# Build outputs and caches
+**/bin/
+**/obj/
+**/node_modules/
+**/.cache/
+
+# Local scripts and logs
+*.log
+start.sh
+start_persistent.sh
+stop_services.sh
+check_status.sh
+setup_system_service.sh
+monitor.sh
+
+# CSV seeds not needed for backend image
+frontend/database/*.csv
+
+# Railway metadata not needed in Docker context
+railway.json
