@@ -1,26 +1,23 @@
-# Use the official .NET 8 SDK image
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+## Multi-stage Dockerfile at repo root for Railway
 
-# Set the working directory
+# --- Build stage ---
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# copy csproj and restore as distinct layers
+COPY backend/UniPortalBackend.csproj ./
+RUN dotnet restore "UniPortalBackend.csproj"
+
+# copy source and publish
+COPY backend/ .
+RUN dotnet publish "UniPortalBackend.csproj" -c Release -o /app/publish --no-restore
+
+# --- Runtime stage ---
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Copy the project file
-COPY backend/UniPortalBackend.csproj .
+COPY --from=build /app/publish .
 
-# Restore dependencies
-RUN dotnet restore
-
-# Copy the rest of the source code
-COPY backend/ .
-
-# Build the application
-RUN dotnet build --configuration Release --no-restore
-
-# Expose the port (Railway will set this)
-EXPOSE $PORT
-
-# Set the environment variable for the port
-ENV ASPNETCORE_URLS=http://+:$PORT
-
-# Start the application
-ENTRYPOINT ["dotnet", "run", "--project", "UniPortalBackend.csproj", "--configuration", "Release"]
+# Railway sets $PORT dynamically; use shell entrypoint so $PORT expands at runtime
+EXPOSE 8080
+ENTRYPOINT ["/bin/sh","-c","dotnet UniPortalBackend.dll --urls http://0.0.0.0:$PORT"]
