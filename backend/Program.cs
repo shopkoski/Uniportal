@@ -21,6 +21,9 @@ app.UseCors("AllowAll");
 app.MapGet("/health", () => "OK");
 app.MapGet("/api/test", () => "Backend is working!");
 
+// Safety: minimal grades endpoint so it never 404s while deploy caches update
+app.MapGet("/api/grades", () => Results.Ok(new { success = true, data = Array.Empty<object>() }));
+
 // Login endpoint
 app.MapPost("/api/auth/login", (LoginRequest request) =>
 {
