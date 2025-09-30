@@ -4,6 +4,9 @@ FROM php:8.2-cli
 # Set the working directory
 WORKDIR /app
 
+# Install MySQL extensions required by our PHP endpoints
+RUN docker-php-ext-install pdo_mysql mysqli
+
 # Copy the application files
 COPY . .
 
