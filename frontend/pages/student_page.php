@@ -913,7 +913,7 @@ $students = [];
             const user = Auth.getUser();
             if (user) {
                 console.log('User found, rendering students with role:', user.role);
-                fetch('https://uniportal-backend-production.up.railway.app/api/students')
+                fetch('https://uniportal.azurewebsites.net/api/students')
                     .then(async function(r) {
                         if (!r.ok) {
                             const txt = await r.text();
@@ -1182,7 +1182,7 @@ $students = [];
             saveHiddenStudents(hidden);
             
             // Re-fetch to keep logic simple
-            fetch('https://uniportal-backend-production.up.railway.app/api/students')
+            fetch('https://uniportal.azurewebsites.net/api/students')
                 .then(async r => {
                     if (!r.ok) {
                         const txt = await r.text();

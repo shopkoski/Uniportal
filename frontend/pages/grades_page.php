@@ -888,7 +888,7 @@ function loadGrades() {
 
 function loadAllGrades() {
     // For admin, we'll use the existing getAllGrades data
-    fetch('https://uniportal-backend-production.up.railway.app/api/grades')
+    fetch('https://uniportal.azurewebsites.net/api/grades')
         .then(response => {
             if (!response || !response.ok) {
                 throw new Error(`HTTP error! status: ${response ? response.status : 'No response'}`);
@@ -911,7 +911,7 @@ function loadAllGrades() {
 function loadStudentGrades(userEmail) {
     // First get the student ID for this user
     // For now, show all grades for students too (until per-student endpoint is added)
-    fetch('https://uniportal-backend-production.up.railway.app/api/grades')
+    fetch('https://uniportal.azurewebsites.net/api/grades')
         .then(response => {
             if (!response || !response.ok) {
                 throw new Error(`HTTP error! status: ${response ? response.status : 'No response'}`);
@@ -1029,7 +1029,7 @@ function getGradeClass(letterGrade) {
 // Load form data for grade modal
 function loadFormData() {
     // Load students for grade form
-    fetch('https://uniportal-backend-production.up.railway.app/api/students')
+    fetch('https://uniportal.azurewebsites.net/api/students')
         .then(response => response.json())
         .then(payload => {
             const students = Array.isArray(payload) ? payload : (payload.data || []);
@@ -1044,7 +1044,7 @@ function loadFormData() {
         .catch(error => console.error('Error loading students:', error));
 
     // Load courses for grade form
-    fetch('https://uniportal-backend-production.up.railway.app/api/courses')
+    fetch('https://uniportal.azurewebsites.net/api/courses')
         .then(response => response.json())
         .then(payload => {
             const courses = Array.isArray(payload) ? payload : (payload.data || []);

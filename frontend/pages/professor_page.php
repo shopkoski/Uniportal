@@ -849,7 +849,7 @@ $professors = [];
             const user = Auth.getUser();
             if (user) {
                 console.log('User found, rendering professors with role:', user.role);
-                fetch('https://uniportal-backend-production.up.railway.app/api/professors')
+                fetch('https://uniportal.azurewebsites.net/api/professors')
                     .then(function(r) { return r.json(); })
                     .then(function(professors) { 
                         renderProfessors(professors);
@@ -926,7 +926,7 @@ $professors = [];
                         setTimeout(() => {
                             closeAddProfessorModal();
                             // Refresh the professors list
-                            fetch('https://uniportal-backend-production.up.railway.app/api/professors')
+                            fetch('https://uniportal.azurewebsites.net/api/professors')
                                 .then(r => r.json())
                                 .then(renderProfessors);
                         }, 1500);
@@ -1024,7 +1024,7 @@ $professors = [];
             showSuccessToast(`${professorName} has been deleted successfully.`);
             
             // Refresh the professors list
-            fetch('https://uniportal-backend-production.up.railway.app/api/professors').then(r => r.json()).then(renderProfessors);
+            fetch('https://uniportal.azurewebsites.net/api/professors').then(r => r.json()).then(renderProfessors);
         });
     }
     </script>
