@@ -1,0 +1,2 @@
+[config]
+command = dotnet publish backend/UniPortalBackend.csproj --configuration Release --output ./output
