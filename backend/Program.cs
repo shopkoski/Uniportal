@@ -7,7 +7,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://uniportal-fr.azurewebsites.net", "http://localhost:3000", "http://localhost:8080")
+        policy.WithOrigins("https://uniportal-fr.azurewebsites.net", "https://uniportal-fr-ezc2h8g7gsgxd9be.canadacentral-01.azurewebsites.net", "http://localhost:3000", "http://localhost:8080")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
