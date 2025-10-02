@@ -23,22 +23,22 @@ jobs:
         with:
           php-version: '8.2'
 
-      - name: Check if composer.json exists
+      - name: Check if composer.json exists in frontend
         id: check_files
         uses: andstor/file-existence-action@v1
         with:
-          files: 'composer.json'
+          files: 'frontend/composer.json'
 
       - name: Run composer install if composer.json exists
         if: steps.check_files.outputs.files_exists == 'true'
+        working-directory: ./frontend
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
-
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: php-app
-          path: .
+          path: ./frontend
 
   deploy:
     runs-on: ubuntu-latest
