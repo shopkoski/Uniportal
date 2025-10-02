@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniPortal - University Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .status {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .status h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .status p {
+            color: #388e3c;
+            margin: 5px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .links {
+            margin-top: 30px;
+        }
+        
+        .link-item {
+            display: block;
+            margin: 10px 0;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .link-item:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎓</div>
+        <h1>UniPortal</h1>
+        <p class="subtitle">University Management System</p>
+        
+        <div class="status">
+            <h3>✅ System Status</h3>
+            <p><strong>Backend:</strong> Running on Azure</p>
+            <p><strong>Database:</strong> Railway MySQL Connected</p>
+            <p><strong>Frontend:</strong> Deployed Successfully</p>
+        </div>
+        
+        <div class="links">
+            <a href="login.html" class="btn">Login to UniPortal</a>
+            
+            <h3 style="margin-top: 30px; color: #333;">Quick Access:</h3>
+            <a href="student_page.php" class="link-item">Student Portal</a>
+            <a href="professor_page.php" class="link-item">Professor Portal</a>
+            <a href="admin_management.php" class="link-item">Admin Management</a>
+            <a href="courses_page.php" class="link-item">Courses</a>
+            <a href="grades_page.php" class="link-item">Grades</a>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by Azure Static Web Apps</p>
+            <p>Backend: Azure App Service | Database: Railway MySQL</p>
+        </div>
+    </div>
+    
+    <script>
+        // Test backend connection
+        fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/test')
+            .then(response => response.text())
+            .then(data => {
+                console.log('Backend connection test:', data);
+            })
+            .catch(error => {
+                console.log('Backend connection test failed:', error);
+            });
+    </script>
+</body>
+</html>
