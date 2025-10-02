@@ -1,7 +1,7 @@
 services:
   - type: web
     name: uniportal-backend
-    env: docker
+    runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /health
@@ -9,18 +9,18 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        value: Server=crossover.proxy.rlwy.net;Port=44070;Database=railway;Uid=root;Pwd=wtWYuztNPZkFwJXTayCFeYXiSgrBIbLg;
+        value: "Server=crossover.proxy.rlwy.net;Port=44070;Database=railway;Uid=root;Pwd=wtWYuztNPZkFwJXTayCFeYXiSgrBIbLg;"
 
   - type: web
     name: uniportal-frontend
-    env: docker
+    runtime: docker
     dockerfilePath: ./frontend/Dockerfile
     plan: free
     envVars:
       - key: DB_HOST
         value: crossover.proxy.rlwy.net
       - key: DB_PORT
-        value: 44070
+        value: "44070"
       - key: DB_NAME
         value: railway
       - key: DB_USER
