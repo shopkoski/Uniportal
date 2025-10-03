@@ -20,7 +20,7 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 
 app.MapGet("/health", () => "OK");
-app.MapGet("/api/test", () => "Backend is working! v2.0 - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+app.MapGet("/api/test", () => "Backend is working! v3.0 - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
 
 // Safety: minimal grades endpoint removed - using full DB version below
 
