@@ -900,7 +900,7 @@ function loadAllGrades() {
                 document.getElementById('gradesContainer').innerHTML = `<p>Error: ${data.error}</p>`;
                 return;
             }
-            displayGrades(data, true);
+            displayGrades(data.data, true);
         })
         .catch(error => {
             console.error('Error loading all grades:', error);
@@ -943,7 +943,7 @@ function loadStudentGrades(userEmail) {
                 document.getElementById('gradesContainer').innerHTML = `<p>Error: ${data.error}</p>`;
                 return;
             }
-            displayGrades(data, false);
+            displayGrades(data.data, false);
         })
         .catch(error => {
             console.error('Error loading student grades:', error);
