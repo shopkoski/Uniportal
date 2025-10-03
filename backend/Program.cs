@@ -171,9 +171,6 @@ app.MapGet("/api/grades", async () =>
     var results = new List<object>();
     while (await reader.ReadAsync())
     {
-        var grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5);
-        var letterGrade = grade.HasValue ? GetLetterGrade(grade.Value) : "N/A";
-        
         results.Add(new
         {
             enrollment_id = reader.IsDBNull(0) ? (int?)null : reader.GetInt32(0),
@@ -181,8 +178,7 @@ app.MapGet("/api/grades", async () =>
             student_name = reader.IsDBNull(2) ? null : reader.GetString(2),
             course_id = reader.GetInt32(3),
             course_name = reader.IsDBNull(4) ? null : reader.GetString(4),
-            grade = grade,
-            letter_grade = letterGrade,
+            grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5),
             professor_name = reader.IsDBNull(6) ? "Not assigned" : reader.GetString(6)
         });
     }
@@ -202,11 +198,6 @@ app.MapGet("/api/courses/{courseId}/students", async (int courseId) =>
     return Results.Ok(new { success = true, student_count = count });
 });
 
-app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
-{
-    // For now, return 0 courses since we don't have professor-course relationships
-    return Results.Ok(new { success = true, course_count = 0 });
-});
 
 app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
 {
@@ -260,16 +251,12 @@ app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
     var courses = new List<object>();
     while (await coursesReader.ReadAsync())
     {
-        var grade = coursesReader.IsDBNull(3) ? (decimal?)null : coursesReader.GetDecimal(3);
-        var letterGrade = grade.HasValue ? GetLetterGrade(grade.Value) : "N/A";
-        
         courses.Add(new
         {
             course_id = coursesReader.GetInt32(0),
             course_name = coursesReader.GetString(1),
             credits = coursesReader.IsDBNull(2) ? (int?)null : coursesReader.GetInt32(2),
-            grade = grade,
-            letter_grade = letterGrade,
+            grade = coursesReader.IsDBNull(3) ? (decimal?)null : coursesReader.GetDecimal(3),
             professor_name = coursesReader.IsDBNull(4) ? "Not assigned" : coursesReader.GetString(4),
             professor_email = coursesReader.IsDBNull(5) ? "Not assigned" : coursesReader.GetString(5)
         });
@@ -411,20 +398,7 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
         s.student_id,
         s.first_name + ' ' + s.last_name as student_name,
         s.email,
-        e.grade,
-        CASE 
-            WHEN e.grade >= 9.5 THEN 'A+'
-            WHEN e.grade >= 9.0 THEN 'A'
-            WHEN e.grade >= 8.5 THEN 'A-'
-            WHEN e.grade >= 8.0 THEN 'B+'
-            WHEN e.grade >= 7.5 THEN 'B'
-            WHEN e.grade >= 7.0 THEN 'B-'
-            WHEN e.grade >= 6.5 THEN 'C+'
-            WHEN e.grade >= 6.0 THEN 'C'
-            WHEN e.grade >= 5.5 THEN 'C-'
-            WHEN e.grade >= 5.0 THEN 'D'
-            ELSE 'F'
-        END as letter_grade
+        e.grade
     FROM Enrollments_Table_1 e
     JOIN Students_Table_1 s ON e.student_id = s.student_id
     WHERE e.course_id = @courseId";
@@ -440,8 +414,7 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
             student_id = studentsReader.GetInt32(0),
             student_name = studentsReader.GetString(1),
             email = studentsReader.GetString(2),
-            grade = studentsReader.IsDBNull(3) ? (decimal?)null : studentsReader.GetDecimal(3),
-            letter_grade = studentsReader.IsDBNull(3) ? "N/A" : studentsReader.GetString(4)
+            grade = studentsReader.IsDBNull(3) ? (decimal?)null : studentsReader.GetDecimal(3)
         });
     }
     
@@ -488,24 +461,6 @@ app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
 
 app.Run();
 
-// Helper function to convert numeric grade to letter grade (assuming 0-10 scale)
-static string GetLetterGrade(decimal grade)
-{
-    return grade switch
-    {
-        >= 9.5m => "A+",
-        >= 9.0m => "A",
-        >= 8.5m => "A-",
-        >= 8.0m => "B+",
-        >= 7.5m => "B",
-        >= 7.0m => "B-",
-        >= 6.5m => "C+",
-        >= 6.0m => "C",
-        >= 5.5m => "C-",
-        >= 5.0m => "D",
-        _ => "F"
-    };
-}
 
 public class LoginRequest
 {

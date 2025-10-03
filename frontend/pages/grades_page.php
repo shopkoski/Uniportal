@@ -984,7 +984,6 @@ function displayGrades(grades, isAdmin) {
                     ${isAdmin ? '<th>Student ID</th><th>Student Name</th>' : ''}
                     <th>Course</th>
                     <th>Grade</th>
-                    <th>Letter Grade</th>
                     <th>Professor</th>
                     ${showDeleteColumn ? '<th class="th-delete" id="gradesDeleteHeader" style="display:table-cell; text-align: center !important;">Delete</th>' : ''}
                 </tr>
@@ -993,13 +992,12 @@ function displayGrades(grades, isAdmin) {
     `;
     
     grades.forEach(grade => {
-        const gradeClass = getGradeClass(grade.letter_grade);
+        const gradeClass = getGradeClass(grade.grade);
         html += `
             <tr>
                 ${isAdmin ? `<td>${grade.student_id || ''}</td><td>${grade.student_name || ''}</td>` : ''}
                 <td><span class="course-tag">${grade.course_name}</span></td>
                 <td><span class="grade-badge grade-${gradeClass}">${grade.grade}</span></td>
-                <td><span class="grade-badge grade-${gradeClass}">${grade.letter_grade}</span></td>
                 <td>${grade.professor_name || 'Not assigned'}</td>
                 ${showDeleteColumn ? `<td class="gradesDeleteCell" style="display:table-cell; text-align: center !important; vertical-align: middle !important;">${getDeleteButton(grade.grade_id)}</td>` : ''}
             </tr>
