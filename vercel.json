@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/UniPortalBackend.csproj",
+      "use": "@vercel/dotnet"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/backend/"
+    }
+  ],
+  "env": {
+    "ASPNETCORE_ENVIRONMENT": "Production",
+    "ConnectionStrings__DefaultConnection": "Server=crossover.proxy.rlwy.net;Port=44070;Database=railway;Uid=root;Pwd=wtWYuztNPZkFwJXTayCFeYXiSgrBIbLg;"
+  }
+}
