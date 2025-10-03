@@ -92,7 +92,15 @@ app.MapGet("/api/courses", async () =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new SqlCommand("SELECT course_id, course_name, credits FROM Courses_Table_1", conn);
+    var sql = @"SELECT 
+        c.course_id, 
+        c.course_name, 
+        c.credits,
+        COUNT(e.student_id) as enrolled_students
+    FROM Courses_Table_1 c
+    LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
+    GROUP BY c.course_id, c.course_name, c.credits";
+    var cmd = new SqlCommand(sql, conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -101,7 +109,8 @@ app.MapGet("/api/courses", async () =>
         {
             course_id = reader.GetInt32(0),
             course_name = reader.GetString(1),
-            credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2)
+            credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+            enrolled_students = reader.GetInt32(3)
         });
     }
     return Results.Ok(new { success = true, data = results });
@@ -112,7 +121,17 @@ app.MapGet("/api/professors", async () =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new SqlCommand("SELECT professor_id, first_name, last_name, email, department FROM Professors_Table_1", conn);
+    var sql = @"SELECT 
+        p.professor_id, 
+        p.first_name, 
+        p.last_name, 
+        p.email, 
+        p.department,
+        COUNT(c.course_id) as course_count
+    FROM Professors_Table_1 p
+    LEFT JOIN Courses_Table_1 c ON p.professor_id = c.professor_id
+    GROUP BY p.professor_id, p.first_name, p.last_name, p.email, p.department";
+    var cmd = new SqlCommand(sql, conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -123,7 +142,8 @@ app.MapGet("/api/professors", async () =>
             first_name = reader.GetString(1),
             last_name = reader.GetString(2),
             email = reader.GetString(3),
-            department = reader.IsDBNull(4) ? null : reader.GetString(4)
+            department = reader.IsDBNull(4) ? null : reader.GetString(4),
+            course_count = reader.GetInt32(5)
         });
     }
     return Results.Ok(new { success = true, data = results });
@@ -151,6 +171,9 @@ app.MapGet("/api/grades", async () =>
     var results = new List<object>();
     while (await reader.ReadAsync())
     {
+        var grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5);
+        var letterGrade = grade.HasValue ? GetLetterGrade(grade.Value) : "N/A";
+        
         results.Add(new
         {
             enrollment_id = reader.IsDBNull(0) ? (int?)null : reader.GetInt32(0),
@@ -158,7 +181,8 @@ app.MapGet("/api/grades", async () =>
             student_name = reader.IsDBNull(2) ? null : reader.GetString(2),
             course_id = reader.GetInt32(3),
             course_name = reader.IsDBNull(4) ? null : reader.GetString(4),
-            grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5),
+            grade = grade,
+            letter_grade = letterGrade,
             professor_name = reader.IsDBNull(6) ? "Not assigned" : reader.GetString(6)
         });
     }
@@ -336,7 +360,58 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
     return Results.NotFound(new { success = false, message = "Course not found" });
 });
 
+// Professor course details endpoint
+app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"SELECT 
+        c.course_id,
+        c.course_name,
+        c.credits,
+        COUNT(e.student_id) as enrolled_students
+    FROM Courses_Table_1 c
+    LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
+    WHERE c.professor_id = @professorId
+    GROUP BY c.course_id, c.course_name, c.credits";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@professorId", professorId);
+    var reader = await cmd.ExecuteReaderAsync();
+    var results = new List<object>();
+    while (await reader.ReadAsync())
+    {
+        results.Add(new
+        {
+            course_id = reader.GetInt32(0),
+            course_name = reader.GetString(1),
+            credits = reader.GetInt32(2),
+            enrolled_students = reader.GetInt32(3)
+        });
+    }
+    return Results.Ok(new { success = true, data = results });
+});
+
 app.Run();
+
+// Helper function to convert numeric grade to letter grade
+static string GetLetterGrade(decimal grade)
+{
+    return grade switch
+    {
+        >= 95 => "A+",
+        >= 90 => "A",
+        >= 85 => "A-",
+        >= 80 => "B+",
+        >= 75 => "B",
+        >= 70 => "B-",
+        >= 65 => "C+",
+        >= 60 => "C",
+        >= 55 => "C-",
+        >= 50 => "D",
+        _ => "F"
+    };
+}
 
 public class LoginRequest
 {
