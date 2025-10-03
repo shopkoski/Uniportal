@@ -213,29 +213,75 @@ app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var sql = @"SELECT 
+    
+    // First get student info
+    var studentSql = @"SELECT 
+        student_id,
+        first_name + ' ' + last_name as student_name,
+        email,
+        enrollment_year
+    FROM Students_Table_1 
+    WHERE student_id = @studentId";
+    var studentCmd = new SqlCommand(studentSql, conn);
+    studentCmd.Parameters.AddWithValue("@studentId", studentId);
+    var studentReader = await studentCmd.ExecuteReaderAsync();
+    
+    if (!await studentReader.ReadAsync())
+    {
+        return Results.NotFound(new { success = false, message = "Student not found" });
+    }
+    
+    var student = new
+    {
+        student_id = studentReader.GetInt32(0),
+        student_name = studentReader.GetString(1),
+        email = studentReader.GetString(2),
+        enrollment_year = studentReader.IsDBNull(3) ? (int?)null : studentReader.GetInt32(3)
+    };
+    
+    studentReader.Close();
+    
+    // Then get courses
+    var coursesSql = @"SELECT 
         c.course_id, 
         c.course_name, 
         c.credits,
-        e.grade
+        e.grade,
+        ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name,
+        p.email as professor_email
     FROM Enrollments_Table_1 e
     LEFT JOIN Courses_Table_1 c ON e.course_id = c.course_id
+    LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id
     WHERE e.student_id = @studentId";
-    var cmd = new SqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@studentId", studentId);
-    var reader = await cmd.ExecuteReaderAsync();
-    var results = new List<object>();
-    while (await reader.ReadAsync())
+    var coursesCmd = new SqlCommand(coursesSql, conn);
+    coursesCmd.Parameters.AddWithValue("@studentId", studentId);
+    var coursesReader = await coursesCmd.ExecuteReaderAsync();
+    
+    var courses = new List<object>();
+    while (await coursesReader.ReadAsync())
     {
-        results.Add(new
+        var grade = coursesReader.IsDBNull(3) ? (decimal?)null : coursesReader.GetDecimal(3);
+        var letterGrade = grade.HasValue ? GetLetterGrade(grade.Value) : "N/A";
+        
+        courses.Add(new
         {
-            course_id = reader.GetInt32(0),
-            course_name = reader.GetString(1),
-            credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
-            grade = reader.IsDBNull(3) ? (decimal?)null : reader.GetDecimal(3)
+            course_id = coursesReader.GetInt32(0),
+            course_name = coursesReader.GetString(1),
+            credits = coursesReader.IsDBNull(2) ? (int?)null : coursesReader.GetInt32(2),
+            grade = grade,
+            letter_grade = letterGrade,
+            professor_name = coursesReader.IsDBNull(4) ? "Not assigned" : coursesReader.GetString(4),
+            professor_email = coursesReader.IsDBNull(5) ? "Not assigned" : coursesReader.GetString(5)
         });
     }
-    return Results.Ok(new { success = true, data = results });
+    
+    var result = new
+    {
+        student = student,
+        courses = courses
+    };
+    
+    return Results.Ok(new { success = true, data = result });
 });
 
 // Dynamic CRUD operations
@@ -367,16 +413,16 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
         s.email,
         e.grade,
         CASE 
-            WHEN e.grade >= 95 THEN 'A+'
-            WHEN e.grade >= 90 THEN 'A'
-            WHEN e.grade >= 85 THEN 'A-'
-            WHEN e.grade >= 80 THEN 'B+'
-            WHEN e.grade >= 75 THEN 'B'
-            WHEN e.grade >= 70 THEN 'B-'
-            WHEN e.grade >= 65 THEN 'C+'
-            WHEN e.grade >= 60 THEN 'C'
-            WHEN e.grade >= 55 THEN 'C-'
-            WHEN e.grade >= 50 THEN 'D'
+            WHEN e.grade >= 9.5 THEN 'A+'
+            WHEN e.grade >= 9.0 THEN 'A'
+            WHEN e.grade >= 8.5 THEN 'A-'
+            WHEN e.grade >= 8.0 THEN 'B+'
+            WHEN e.grade >= 7.5 THEN 'B'
+            WHEN e.grade >= 7.0 THEN 'B-'
+            WHEN e.grade >= 6.5 THEN 'C+'
+            WHEN e.grade >= 6.0 THEN 'C'
+            WHEN e.grade >= 5.5 THEN 'C-'
+            WHEN e.grade >= 5.0 THEN 'D'
             ELSE 'F'
         END as letter_grade
     FROM Enrollments_Table_1 e
@@ -442,21 +488,21 @@ app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
 
 app.Run();
 
-// Helper function to convert numeric grade to letter grade
+// Helper function to convert numeric grade to letter grade (assuming 0-10 scale)
 static string GetLetterGrade(decimal grade)
 {
     return grade switch
     {
-        >= 95 => "A+",
-        >= 90 => "A",
-        >= 85 => "A-",
-        >= 80 => "B+",
-        >= 75 => "B",
-        >= 70 => "B-",
-        >= 65 => "C+",
-        >= 60 => "C",
-        >= 55 => "C-",
-        >= 50 => "D",
+        >= 9.5m => "A+",
+        >= 9.0m => "A",
+        >= 8.5m => "A-",
+        >= 8.0m => "B+",
+        >= 7.5m => "B",
+        >= 7.0m => "B-",
+        >= 6.5m => "C+",
+        >= 6.0m => "C",
+        >= 5.5m => "C-",
+        >= 5.0m => "D",
         _ => "F"
     };
 }

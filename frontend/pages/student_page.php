@@ -1275,12 +1275,8 @@ function showStudentCourseDetails(studentId) {
                 return;
             }
             
-            // Transform the API response to match what displayStudentCourseDetails expects
-            const transformedData = {
-                student: { student_name: "Student" }, // We'll get this from the students list
-                courses: data.data || []
-            };
-            displayStudentCourseDetails(transformedData);
+            // The new API returns {student: {...}, courses: [...]} in data.data
+            displayStudentCourseDetails(data.data);
         })
         .catch(error => {
             console.log('Student course details error:', error);
