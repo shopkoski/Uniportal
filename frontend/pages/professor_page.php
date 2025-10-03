@@ -851,8 +851,8 @@ $professors = [];
                 console.log('User found, rendering professors with role:', user.role);
                 fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors')
                     .then(function(r) { return r.json(); })
-                    .then(function(professors) { 
-                        renderProfessors(professors);
+                    .then(function(response) { 
+                        renderProfessors(response.data);
                         checkUserRole();
                     })
                     .catch(function(err) {
@@ -928,7 +928,7 @@ $professors = [];
                             // Refresh the professors list
                             fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors')
                                 .then(r => r.json())
-                                .then(renderProfessors);
+                                .then(response => renderProfessors(response.data));
                         }, 1500);
                     } else {
                         alert('Error: ' + (data.error || 'Failed to add professor'));
@@ -1024,7 +1024,7 @@ $professors = [];
             showSuccessToast(`${professorName} has been deleted successfully.`);
             
             // Refresh the professors list
-            fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors').then(r => r.json()).then(renderProfessors);
+            fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors').then(r => r.json()).then(response => renderProfessors(response.data));
         });
     }
     </script>

@@ -1020,8 +1020,8 @@ $courses = [];
                     console.log('User found, rendering courses with role:', user.role);
                     fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses')
                         .then(function(r) { return r.json(); })
-                        .then(function(courses) { 
-                            renderCourses(courses);
+                        .then(function(response) { 
+                            renderCourses(response.data);
                             checkUserRole();
                         })
                         .catch(function(err) {
@@ -1125,7 +1125,7 @@ $courses = [];
             showSuccessToast(`${courseName} has been deleted successfully.`);
             
             // Refresh the courses list
-            fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses').then(r => r.json()).then(renderCourses);
+            fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses').then(r => r.json()).then(response => renderCourses(response.data));
         });
     }
     </script>
