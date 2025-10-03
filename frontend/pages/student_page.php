@@ -1262,7 +1262,7 @@ function showStudentCourseDetails(studentId) {
     const userRole = user?.role || 'User';
     const userEmail = user?.email || null;
     
-    fetch(`../api/get_student_course_details_secure.php?student_id=${studentId}&user_role=${userRole}&user_email=${encodeURIComponent(userEmail || '')}`)
+    fetch(`https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/students/${studentId}/courses`)
         .then(response => {
             console.log('Student course details response status:', response.status);
             console.log('Student course details response ok:', response.ok);

@@ -986,10 +986,10 @@ $professors = [];
             html += `
                 <tr>
                     <td>${p.professor_id}</td>
-                    <td>${p.full_name}</td>
+                    <td>${p.first_name} ${p.last_name}</td>
                     <td>${p.email}</td>
                     <td><span class="department-tag">${p.department}</span></td>
-                    <td><span class="courses-count">${p.courses_taught} courses</span></td>
+                    <td><span class="courses-count">${p.course_count} courses</span></td>
                     <td><button class="view-btn view-btn-text" onclick="showProfessorCourseDetails(${p.professor_id})">View</button></td>
                     ${showDeleteColumn ? `<td class="professorsDeleteCell" style="display:table-cell; text-align: center !important; vertical-align: middle !important;">${getDeleteButton(p.professor_id)}</td>` : ''}
                 </tr>
@@ -1036,7 +1036,7 @@ function showProfessorCourseDetails(professorId) {
     modal.style.display = 'block';
     document.getElementById('modalBody').innerHTML = '<div class="loading">Loading professor course details...</div>';
     
-    fetch(`../api/get_professor_course_details.php?professor_id=${professorId}`)
+    fetch(`https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors/${professorId}/courses`)
         .then(response => {
             console.log('Professor course details response status:', response.status);
             console.log('Professor course details response ok:', response.ok);
@@ -1049,7 +1049,12 @@ function showProfessorCourseDetails(professorId) {
                 return;
             }
             
-            displayProfessorCourseDetails(data);
+            // Transform the API response to match what displayProfessorCourseDetails expects
+            const transformedData = {
+                professor: { professor_name: "Professor" }, // We'll get this from the professors list
+                courses: data.data || []
+            };
+            displayProfessorCourseDetails(transformedData);
         })
         .catch(error => {
             console.log('Professor course details error:', error);
