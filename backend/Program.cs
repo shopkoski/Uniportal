@@ -70,7 +70,7 @@ app.MapGet("/api/students", async (HttpContext ctx) =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new MySqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new MySqlCommand("SELECT student_id, first_name, last_name, email, enrollment_year FROM Students", conn);
+    var cmd = new MySqlCommand("SELECT student_id, first_name, last_name, email, enrollment_year FROM Students_Table_1", conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -92,7 +92,7 @@ app.MapGet("/api/courses", async () =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new MySqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new MySqlCommand("SELECT course_id, course_name, credits FROM Courses", conn);
+    var cmd = new MySqlCommand("SELECT course_id, course_name, credits FROM Courses_Table_1", conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -112,7 +112,7 @@ app.MapGet("/api/professors", async () =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new MySqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new MySqlCommand("SELECT professor_id, first_name, last_name, email, department FROM Professors", conn);
+    var cmd = new MySqlCommand("SELECT professor_id, first_name, last_name, email, department FROM Professors_Table_1", conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -134,7 +134,7 @@ app.MapGet("/api/grades", async () =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new MySqlConnection(connStr);
     await conn.OpenAsync();
-    var sql = @"SELECT enrollment_id, student_id, course_id, grade FROM Enrollments";
+    var sql = @"SELECT enrollment_id, student_id, course_id, grade FROM Enrollments_Table_1";
     var cmd = new MySqlCommand(sql, conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
