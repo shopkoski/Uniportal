@@ -20,7 +20,7 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 
 app.MapGet("/health", () => "OK");
-app.MapGet("/api/test", () => "Backend is working! v4.2 - Azure SQL with CONCAT - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+app.MapGet("/api/test", () => "Backend is working! v4.3 - Azure SQL with Relationships - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
 
 // Safety: minimal grades endpoint removed - using full DB version below
 
@@ -159,6 +159,55 @@ app.MapGet("/api/grades", async () =>
             course_name = reader.IsDBNull(4) ? null : reader.GetString(4),
             grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5),
             professor_name = "Not assigned"
+        });
+    }
+    return Results.Ok(new { success = true, data = results });
+});
+
+// Additional endpoints for frontend functionality
+app.MapGet("/api/courses/{courseId}/students", async (int courseId) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"SELECT COUNT(*) as student_count FROM Enrollments_Table_1 WHERE course_id = @courseId";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@courseId", courseId);
+    var count = await cmd.ExecuteScalarAsync();
+    return Results.Ok(new { success = true, student_count = count });
+});
+
+app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
+{
+    // For now, return 0 courses since we don't have professor-course relationships
+    return Results.Ok(new { success = true, course_count = 0 });
+});
+
+app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"SELECT 
+        c.course_id, 
+        c.course_name, 
+        c.credits,
+        e.grade
+    FROM Enrollments_Table_1 e
+    LEFT JOIN Courses_Table_1 c ON e.course_id = c.course_id
+    WHERE e.student_id = @studentId";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@studentId", studentId);
+    var reader = await cmd.ExecuteReaderAsync();
+    var results = new List<object>();
+    while (await reader.ReadAsync())
+    {
+        results.Add(new
+        {
+            course_id = reader.GetInt32(0),
+            course_name = reader.GetString(1),
+            credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+            grade = reader.IsDBNull(3) ? (decimal?)null : reader.GetDecimal(3)
         });
     }
     return Results.Ok(new { success = true, data = results });
