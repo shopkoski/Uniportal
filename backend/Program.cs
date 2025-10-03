@@ -331,33 +331,81 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var sql = @"SELECT 
+    
+    // First get course details
+    var courseSql = @"SELECT 
         c.course_id,
         c.course_name,
         c.credits,
-        ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name,
-        COUNT(e.student_id) as enrolled_students
+        ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name
     FROM Courses_Table_1 c
     LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id
-    LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
-    WHERE c.course_id = @courseId
-    GROUP BY c.course_id, c.course_name, c.credits, p.first_name, p.last_name";
-    var cmd = new SqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@courseId", courseId);
-    var reader = await cmd.ExecuteReaderAsync();
-    if (await reader.ReadAsync())
+    WHERE c.course_id = @courseId";
+    var courseCmd = new SqlCommand(courseSql, conn);
+    courseCmd.Parameters.AddWithValue("@courseId", courseId);
+    var courseReader = await courseCmd.ExecuteReaderAsync();
+    
+    if (!await courseReader.ReadAsync())
     {
-        var result = new
-        {
-            course_id = reader.GetInt32(0),
-            course_name = reader.GetString(1),
-            credits = reader.GetInt32(2),
-            professor_name = reader.IsDBNull(3) ? "Not assigned" : reader.GetString(3),
-            enrolled_students = reader.GetInt32(4)
-        };
-        return Results.Ok(new { success = true, data = result });
+        return Results.NotFound(new { success = false, message = "Course not found" });
     }
-    return Results.NotFound(new { success = false, message = "Course not found" });
+    
+    var course = new
+    {
+        course_id = courseReader.GetInt32(0),
+        course_name = courseReader.GetString(1),
+        credits = courseReader.GetInt32(2),
+        professor_name = courseReader.IsDBNull(3) ? "Not assigned" : courseReader.GetString(3)
+    };
+    
+    courseReader.Close();
+    
+    // Then get enrolled students
+    var studentsSql = @"SELECT 
+        s.student_id,
+        s.first_name + ' ' + s.last_name as student_name,
+        s.email,
+        e.grade,
+        CASE 
+            WHEN e.grade >= 95 THEN 'A+'
+            WHEN e.grade >= 90 THEN 'A'
+            WHEN e.grade >= 85 THEN 'A-'
+            WHEN e.grade >= 80 THEN 'B+'
+            WHEN e.grade >= 75 THEN 'B'
+            WHEN e.grade >= 70 THEN 'B-'
+            WHEN e.grade >= 65 THEN 'C+'
+            WHEN e.grade >= 60 THEN 'C'
+            WHEN e.grade >= 55 THEN 'C-'
+            WHEN e.grade >= 50 THEN 'D'
+            ELSE 'F'
+        END as letter_grade
+    FROM Enrollments_Table_1 e
+    JOIN Students_Table_1 s ON e.student_id = s.student_id
+    WHERE e.course_id = @courseId";
+    var studentsCmd = new SqlCommand(studentsSql, conn);
+    studentsCmd.Parameters.AddWithValue("@courseId", courseId);
+    var studentsReader = await studentsCmd.ExecuteReaderAsync();
+    
+    var students = new List<object>();
+    while (await studentsReader.ReadAsync())
+    {
+        students.Add(new
+        {
+            student_id = studentsReader.GetInt32(0),
+            student_name = studentsReader.GetString(1),
+            email = studentsReader.GetString(2),
+            grade = studentsReader.IsDBNull(3) ? (decimal?)null : studentsReader.GetDecimal(3),
+            letter_grade = studentsReader.IsDBNull(3) ? "N/A" : studentsReader.GetString(4)
+        });
+    }
+    
+    var result = new
+    {
+        course = course,
+        students = students
+    };
+    
+    return Results.Ok(new { success = true, data = result });
 });
 
 // Professor course details endpoint

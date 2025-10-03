@@ -1150,12 +1150,8 @@ function showCourseDetails(courseId) {
                 return;
             }
             
-            // Transform the API response to match what displayCourseDetails expects
-            const transformedData = {
-                course: data.data,
-                students: [] // We'll add student list functionality later
-            };
-            displayCourseDetails(transformedData);
+            // The new API returns {course: {...}, students: [...]} in data.data
+            displayCourseDetails(data.data);
         })
         .catch(error => {
             console.log('Course details error:', error);
