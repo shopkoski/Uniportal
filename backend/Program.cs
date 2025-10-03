@@ -20,7 +20,7 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 
 app.MapGet("/health", () => "OK");
-app.MapGet("/api/test", () => "Backend is working! v4.1 - Azure SQL with JOINs - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+app.MapGet("/api/test", () => "Backend is working! v4.2 - Azure SQL with CONCAT - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
 
 // Safety: minimal grades endpoint removed - using full DB version below
 
@@ -137,15 +137,14 @@ app.MapGet("/api/grades", async () =>
     var sql = @"SELECT 
         e.enrollment_id, 
         e.student_id, 
-        s.first_name + ' ' + s.last_name as student_name,
+        CONCAT(s.first_name, ' ', s.last_name) as student_name,
         e.course_id, 
         c.course_name,
         e.grade,
-        p.first_name + ' ' + p.last_name as professor_name
+        'Not assigned' as professor_name
     FROM Enrollments_Table_1 e
     LEFT JOIN Students_Table_1 s ON e.student_id = s.student_id
-    LEFT JOIN Courses_Table_1 c ON e.course_id = c.course_id
-    LEFT JOIN Professors_Table_1 p ON c.course_id = p.professor_id";
+    LEFT JOIN Courses_Table_1 c ON e.course_id = c.course_id";
     var cmd = new SqlCommand(sql, conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
@@ -159,7 +158,7 @@ app.MapGet("/api/grades", async () =>
             course_id = reader.GetInt32(3),
             course_name = reader.IsDBNull(4) ? null : reader.GetString(4),
             grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5),
-            professor_name = reader.IsDBNull(6) ? "Not assigned" : reader.GetString(6)
+            professor_name = "Not assigned"
         });
     }
     return Results.Ok(new { success = true, data = results });
