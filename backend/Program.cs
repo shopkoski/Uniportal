@@ -1,4 +1,4 @@
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +20,7 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 
 app.MapGet("/health", () => "OK");
-app.MapGet("/api/test", () => "Backend is working! v3.1 - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+app.MapGet("/api/test", () => "Backend is working! v4.0 - Azure SQL - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
 
 // Safety: minimal grades endpoint removed - using full DB version below
 
@@ -68,9 +68,9 @@ app.MapPost("/api/auth/login", (LoginRequest request) =>
 app.MapGet("/api/students", async (HttpContext ctx) =>
 {
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new MySqlConnection(connStr);
+    await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new MySqlCommand("SELECT student_id, first_name, last_name, email, enrollment_year FROM Students_Table_1", conn);
+    var cmd = new SqlCommand("SELECT student_id, first_name, last_name, email, enrollment_year FROM Students_Table_1", conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -90,9 +90,9 @@ app.MapGet("/api/students", async (HttpContext ctx) =>
 app.MapGet("/api/courses", async () =>
 {
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new MySqlConnection(connStr);
+    await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new MySqlCommand("SELECT course_id, course_name, credits FROM Courses_Table_1", conn);
+    var cmd = new SqlCommand("SELECT course_id, course_name, credits FROM Courses_Table_1", conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -110,9 +110,9 @@ app.MapGet("/api/courses", async () =>
 app.MapGet("/api/professors", async () =>
 {
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new MySqlConnection(connStr);
+    await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var cmd = new MySqlCommand("SELECT professor_id, first_name, last_name, email, department FROM Professors_Table_1", conn);
+    var cmd = new SqlCommand("SELECT professor_id, first_name, last_name, email, department FROM Professors_Table_1", conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
@@ -132,10 +132,10 @@ app.MapGet("/api/professors", async () =>
 app.MapGet("/api/grades", async () =>
 {
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new MySqlConnection(connStr);
+    await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
     var sql = @"SELECT enrollment_id, student_id, course_id, grade FROM Enrollments_Table_1";
-    var cmd = new MySqlCommand(sql, conn);
+    var cmd = new SqlCommand(sql, conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
     while (await reader.ReadAsync())
