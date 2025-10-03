@@ -137,14 +137,15 @@ app.MapGet("/api/grades", async () =>
     var sql = @"SELECT 
         e.enrollment_id, 
         e.student_id, 
-        CONCAT(s.first_name, ' ', s.last_name) as student_name,
+        s.first_name + ' ' + s.last_name as student_name,
         e.course_id, 
         c.course_name,
         e.grade,
-        'Not assigned' as professor_name
+        ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name
     FROM Enrollments_Table_1 e
     LEFT JOIN Students_Table_1 s ON e.student_id = s.student_id
-    LEFT JOIN Courses_Table_1 c ON e.course_id = c.course_id";
+    LEFT JOIN Courses_Table_1 c ON e.course_id = c.course_id
+    LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id";
     var cmd = new SqlCommand(sql, conn);
     var reader = await cmd.ExecuteReaderAsync();
     var results = new List<object>();
@@ -158,7 +159,7 @@ app.MapGet("/api/grades", async () =>
             course_id = reader.GetInt32(3),
             course_name = reader.IsDBNull(4) ? null : reader.GetString(4),
             grade = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5),
-            professor_name = "Not assigned"
+            professor_name = reader.IsDBNull(6) ? "Not assigned" : reader.GetString(6)
         });
     }
     return Results.Ok(new { success = true, data = results });
@@ -310,7 +311,7 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
         c.course_id,
         c.course_name,
         c.credits,
-        p.first_name + ' ' + p.last_name as professor_name,
+        ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name,
         COUNT(e.student_id) as enrolled_students
     FROM Courses_Table_1 c
     LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id
