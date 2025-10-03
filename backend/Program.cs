@@ -154,7 +154,7 @@ app.MapGet("/api/grades", async () =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var sql = @"SELECT 
+    var sql = @"SELECT DISTINCT
         e.enrollment_id, 
         e.student_id, 
         s.first_name + ' ' + s.last_name as student_name,
@@ -232,8 +232,8 @@ app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
     
     studentReader.Close();
     
-    // Then get courses
-    var coursesSql = @"SELECT 
+    // Then get courses (remove duplicates)
+    var coursesSql = @"SELECT DISTINCT
         c.course_id, 
         c.course_name, 
         c.credits,
@@ -393,8 +393,8 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
     
     courseReader.Close();
     
-    // Then get enrolled students
-    var studentsSql = @"SELECT 
+    // Then get enrolled students (remove duplicates)
+    var studentsSql = @"SELECT DISTINCT
         s.student_id,
         s.first_name + ' ' + s.last_name as student_name,
         s.email,
@@ -433,7 +433,7 @@ app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
     var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
-    var sql = @"SELECT 
+    var sql = @"SELECT DISTINCT
         c.course_id,
         c.course_name,
         c.credits,
