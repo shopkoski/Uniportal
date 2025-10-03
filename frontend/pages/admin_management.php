@@ -488,7 +488,7 @@ function showTab(tabName) {
 
 function loadFormData() {
     // Load professors for course form
-    fetch('https://uniportal.azurewebsites.net/api/professors')
+    fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors')
         .then(response => response.json())
         .then(professors => {
             const professorSelect = document.getElementById('courseProfessor');
@@ -502,7 +502,7 @@ function loadFormData() {
         .catch(error => console.error('Error loading professors:', error));
 
     // Load students for grade form
-    fetch('https://uniportal.azurewebsites.net/api/students')
+    fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/students')
         .then(response => response.json())
         .then(students => {
             const studentSelect = document.getElementById('gradeStudent');
@@ -516,7 +516,7 @@ function loadFormData() {
         .catch(error => console.error('Error loading students:', error));
 
     // Load courses for grade form
-    fetch('https://uniportal.azurewebsites.net/api/courses')
+    fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses')
         .then(response => response.json())
         .then(courses => {
             const courseSelect = document.getElementById('gradeCourse');

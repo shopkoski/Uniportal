@@ -871,7 +871,7 @@ $courses = [];
 
     // Load professors for the course form
     function loadProfessors() {
-        fetch('https://uniportal.azurewebsites.net/api/professors')
+        fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/professors')
             .then(r => r.json())
             .then(data => {
                 const professorSelect = document.getElementById('courseProfessor');
@@ -1018,7 +1018,7 @@ $courses = [];
                 const user = Auth.getUser();
                 if (user) {
                     console.log('User found, rendering courses with role:', user.role);
-                    fetch('https://uniportal.azurewebsites.net/api/courses')
+                    fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses')
                         .then(function(r) { return r.json(); })
                         .then(function(courses) { 
                             renderCourses(courses);
@@ -1125,7 +1125,7 @@ $courses = [];
             showSuccessToast(`${courseName} has been deleted successfully.`);
             
             // Refresh the courses list
-            fetch('https://uniportal.azurewebsites.net/api/courses').then(r => r.json()).then(renderCourses);
+            fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses').then(r => r.json()).then(renderCourses);
         });
     }
     </script>
