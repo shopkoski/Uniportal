@@ -20,7 +20,7 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 
 app.MapGet("/health", () => "OK");
-app.MapGet("/api/test", () => "Backend is working! v3.0 - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+app.MapGet("/api/test", () => "Backend is working! v3.1 - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
 
 // Safety: minimal grades endpoint removed - using full DB version below
 
@@ -142,7 +142,7 @@ app.MapGet("/api/grades", async () =>
     {
         results.Add(new
         {
-            enrollment_id = reader.GetInt32(0),
+            enrollment_id = reader.IsDBNull(0) ? (int?)null : reader.GetInt32(0),
             student_id = reader.GetInt32(1),
             course_id = reader.GetInt32(2),
             grade = reader.IsDBNull(3) ? (decimal?)null : reader.GetDecimal(3)
