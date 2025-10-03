@@ -213,6 +213,128 @@ app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
     return Results.Ok(new { success = true, data = results });
 });
 
+// Dynamic CRUD operations
+app.MapPost("/api/students", async (StudentRequest request) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"INSERT INTO Students_Table_1 (first_name, last_name, email, enrollment_year) 
+                VALUES (@first_name, @last_name, @email, @enrollment_year);
+                SELECT SCOPE_IDENTITY() as student_id;";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@first_name", request.first_name);
+    cmd.Parameters.AddWithValue("@last_name", request.last_name);
+    cmd.Parameters.AddWithValue("@email", request.email);
+    cmd.Parameters.AddWithValue("@enrollment_year", request.enrollment_year);
+    var studentId = await cmd.ExecuteScalarAsync();
+    return Results.Ok(new { success = true, student_id = studentId });
+});
+
+app.MapDelete("/api/students/{id}", async (int id) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = "DELETE FROM Students_Table_1 WHERE student_id = @id";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@id", id);
+    var rowsAffected = await cmd.ExecuteNonQueryAsync();
+    return Results.Ok(new { success = rowsAffected > 0, message = rowsAffected > 0 ? "Student deleted successfully" : "Student not found" });
+});
+
+app.MapPost("/api/courses", async (CourseRequest request) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"INSERT INTO Courses_Table_1 (course_name, credits, professor_id) 
+                VALUES (@course_name, @credits, @professor_id);
+                SELECT SCOPE_IDENTITY() as course_id;";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@course_name", request.course_name);
+    cmd.Parameters.AddWithValue("@credits", request.credits);
+    cmd.Parameters.AddWithValue("@professor_id", request.professor_id ?? (object)DBNull.Value);
+    var courseId = await cmd.ExecuteScalarAsync();
+    return Results.Ok(new { success = true, course_id = courseId });
+});
+
+app.MapDelete("/api/courses/{id}", async (int id) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = "DELETE FROM Courses_Table_1 WHERE course_id = @id";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@id", id);
+    var rowsAffected = await cmd.ExecuteNonQueryAsync();
+    return Results.Ok(new { success = rowsAffected > 0, message = rowsAffected > 0 ? "Course deleted successfully" : "Course not found" });
+});
+
+app.MapPost("/api/professors", async (ProfessorRequest request) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"INSERT INTO Professors_Table_1 (first_name, last_name, email, department) 
+                VALUES (@first_name, @last_name, @email, @department);
+                SELECT SCOPE_IDENTITY() as professor_id;";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@first_name", request.first_name);
+    cmd.Parameters.AddWithValue("@last_name", request.last_name);
+    cmd.Parameters.AddWithValue("@email", request.email);
+    cmd.Parameters.AddWithValue("@department", request.department);
+    var professorId = await cmd.ExecuteScalarAsync();
+    return Results.Ok(new { success = true, professor_id = professorId });
+});
+
+app.MapDelete("/api/professors/{id}", async (int id) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = "DELETE FROM Professors_Table_1 WHERE professor_id = @id";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@id", id);
+    var rowsAffected = await cmd.ExecuteNonQueryAsync();
+    return Results.Ok(new { success = rowsAffected > 0, message = rowsAffected > 0 ? "Professor deleted successfully" : "Professor not found" });
+});
+
+// Course details endpoint for frontend compatibility
+app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
+{
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    await using var conn = new SqlConnection(connStr);
+    await conn.OpenAsync();
+    var sql = @"SELECT 
+        c.course_id,
+        c.course_name,
+        c.credits,
+        p.first_name + ' ' + p.last_name as professor_name,
+        COUNT(e.student_id) as enrolled_students
+    FROM Courses_Table_1 c
+    LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id
+    LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
+    WHERE c.course_id = @courseId
+    GROUP BY c.course_id, c.course_name, c.credits, p.first_name, p.last_name";
+    var cmd = new SqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@courseId", courseId);
+    var reader = await cmd.ExecuteReaderAsync();
+    if (await reader.ReadAsync())
+    {
+        var result = new
+        {
+            course_id = reader.GetInt32(0),
+            course_name = reader.GetString(1),
+            credits = reader.GetInt32(2),
+            professor_name = reader.IsDBNull(3) ? "Not assigned" : reader.GetString(3),
+            enrolled_students = reader.GetInt32(4)
+        };
+        return Results.Ok(new { success = true, data = result });
+    }
+    return Results.NotFound(new { success = false, message = "Course not found" });
+});
+
 app.Run();
 
 public class LoginRequest
@@ -236,4 +358,27 @@ public class UserInfo
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
+}
+
+public class StudentRequest
+{
+    public string first_name { get; set; } = string.Empty;
+    public string last_name { get; set; } = string.Empty;
+    public string email { get; set; } = string.Empty;
+    public int enrollment_year { get; set; }
+}
+
+public class CourseRequest
+{
+    public string course_name { get; set; } = string.Empty;
+    public int credits { get; set; }
+    public int? professor_id { get; set; }
+}
+
+public class ProfessorRequest
+{
+    public string first_name { get; set; } = string.Empty;
+    public string last_name { get; set; } = string.Empty;
+    public string email { get; set; } = string.Empty;
+    public string department { get; set; } = string.Empty;
 }

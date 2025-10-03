@@ -1137,7 +1137,7 @@ function showCourseDetails(courseId) {
     modal.style.display = 'block';
     document.getElementById('modalBody').innerHTML = '<div class="loading">Loading course details...</div>';
     
-    fetch(`../api/get_course_details.php?course_id=${courseId}`)
+    fetch(`https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/courses/${courseId}/details`)
         .then(response => {
             console.log('Course details response status:', response.status);
             console.log('Course details response ok:', response.ok);
@@ -1150,7 +1150,12 @@ function showCourseDetails(courseId) {
                 return;
             }
             
-            displayCourseDetails(data);
+            // Transform the API response to match what displayCourseDetails expects
+            const transformedData = {
+                course: data.data,
+                students: [] // We'll add student list functionality later
+            };
+            displayCourseDetails(transformedData);
         })
         .catch(error => {
             console.log('Course details error:', error);
