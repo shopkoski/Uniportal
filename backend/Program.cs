@@ -358,41 +358,110 @@ app.MapDelete("/api/professors/{id}", async (int id) =>
     return Results.Ok(new { success = rowsAffected > 0, message = rowsAffected > 0 ? "Professor deleted successfully" : "Professor not found" });
 });
 
-// Course details endpoint for frontend compatibility
-app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
-{
-    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new SqlConnection(connStr);
-    await conn.OpenAsync();
-    
-    // First get course details
-    var courseSql = @"SELECT 
-        c.course_id,
-        c.course_name,
-        c.credits,
-        ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name
-    FROM Courses_Table_1 c
-    LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id
-    WHERE c.course_id = @courseId";
-    var courseCmd = new SqlCommand(courseSql, conn);
-    courseCmd.Parameters.AddWithValue("@courseId", courseId);
-    var courseReader = await courseCmd.ExecuteReaderAsync();
-    
-    if (!await courseReader.ReadAsync())
+    // Course details endpoint for frontend compatibility
+    app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
     {
-        return Results.NotFound(new { success = false, message = "Course not found" });
-    }
-    
-    var course = new
-    {
-        course_id = courseReader.GetInt32(0),
-        course_name = courseReader.GetString(1),
-        credits = courseReader.GetInt32(2),
-        professor_name = courseReader.IsDBNull(3) ? "Not assigned" : courseReader.GetString(3)
-    };
-    
-    courseReader.Close();
-    
+        var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+        await using var conn = new SqlConnection(connStr);
+        await conn.OpenAsync();
+        
+        // First get course details
+        var courseSql = @"SELECT 
+            c.course_id,
+            c.course_name,
+            c.credits,
+            ISNULL(p.first_name + ' ' + p.last_name, 'Not assigned') as professor_name
+        FROM Courses_Table_1 c
+        LEFT JOIN Professors_Table_1 p ON c.professor_id = p.professor_id
+        WHERE c.course_id = @courseId";
+        var courseCmd = new SqlCommand(courseSql, conn);
+        courseCmd.Parameters.AddWithValue("@courseId", courseId);
+        var courseReader = await courseCmd.ExecuteReaderAsync();
+        
+        if (!await courseReader.ReadAsync())
+        {
+            return Results.NotFound(new { success = false, message = "Course not found" });
+        }
+        
+        var course = new
+        {
+            course_id = courseReader.GetInt32(0),
+            course_name = courseReader.GetString(1),
+            credits = courseReader.GetInt32(2),
+            professor_name = courseReader.IsDBNull(3) ? "Not assigned" : courseReader.GetString(3)
+        };
+        
+        courseReader.Close();
+        
+        // Get grade statistics (modal and median)
+        var statsSql = @"SELECT 
+            AVG(CAST(e.grade AS FLOAT)) as average_grade,
+            COUNT(*) as total_grades,
+            MIN(e.grade) as min_grade,
+            MAX(e.grade) as max_grade
+        FROM Enrollments_Table_1 e
+        WHERE e.course_id = @courseId AND e.grade IS NOT NULL";
+        var statsCmd = new SqlCommand(statsSql, conn);
+        statsCmd.Parameters.AddWithValue("@courseId", courseId);
+        var statsReader = await statsCmd.ExecuteReaderAsync();
+        
+        decimal? averageGrade = null;
+        int totalGrades = 0;
+        decimal? minGrade = null;
+        decimal? maxGrade = null;
+        
+        if (await statsReader.ReadAsync())
+        {
+            averageGrade = statsReader.IsDBNull(0) ? null : (decimal)statsReader.GetDouble(0);
+            totalGrades = statsReader.GetInt32(1);
+            minGrade = statsReader.IsDBNull(2) ? null : statsReader.GetDecimal(2);
+            maxGrade = statsReader.IsDBNull(3) ? null : statsReader.GetDecimal(3);
+        }
+        statsReader.Close();
+        
+        // Get all grades for modal and median calculation
+        var gradesSql = @"SELECT DISTINCT e.grade
+        FROM Enrollments_Table_1 e
+        WHERE e.course_id = @courseId AND e.grade IS NOT NULL
+        ORDER BY e.grade";
+        var gradesCmd = new SqlCommand(gradesSql, conn);
+        gradesCmd.Parameters.AddWithValue("@courseId", courseId);
+        var gradesReader = await gradesCmd.ExecuteReaderAsync();
+        
+        var grades = new List<decimal>();
+        while (await gradesReader.ReadAsync())
+        {
+            grades.Add(gradesReader.GetDecimal(0));
+        }
+        gradesReader.Close();
+        
+        // Calculate modal grade (most frequent grade)
+        decimal? modalGrade = null;
+        if (grades.Count > 0)
+        {
+            var gradeGroups = grades.GroupBy(g => g).OrderByDescending(g => g.Count());
+            modalGrade = gradeGroups.First().Key;
+        }
+        
+        // Calculate median grade
+        decimal? medianGrade = null;
+        if (grades.Count > 0)
+        {
+            var sortedGrades = grades.OrderBy(g => g).ToList();
+            if (sortedGrades.Count % 2 == 0)
+            {
+                // Even number of grades - average of two middle values
+                var mid1 = sortedGrades[sortedGrades.Count / 2 - 1];
+                var mid2 = sortedGrades[sortedGrades.Count / 2];
+                medianGrade = (mid1 + mid2) / 2;
+            }
+            else
+            {
+                // Odd number of grades - middle value
+                medianGrade = sortedGrades[sortedGrades.Count / 2];
+            }
+        }
+        
         // Then get enrolled students (remove duplicates)
         var studentsSql = @"SELECT DISTINCT
             s.student_id,
@@ -402,30 +471,41 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
         FROM Enrollments_Table_1 e
         JOIN Students_Table_1 s ON e.student_id = s.student_id
         WHERE e.course_id = @courseId";
-    var studentsCmd = new SqlCommand(studentsSql, conn);
-    studentsCmd.Parameters.AddWithValue("@courseId", courseId);
-    var studentsReader = await studentsCmd.ExecuteReaderAsync();
-    
-    var students = new List<object>();
-    while (await studentsReader.ReadAsync())
-    {
-        students.Add(new
+        var studentsCmd = new SqlCommand(studentsSql, conn);
+        studentsCmd.Parameters.AddWithValue("@courseId", courseId);
+        var studentsReader = await studentsCmd.ExecuteReaderAsync();
+        
+        var students = new List<object>();
+        while (await studentsReader.ReadAsync())
         {
-            student_id = studentsReader.GetInt32(0),
-            student_name = studentsReader.GetString(1),
-            email = studentsReader.GetString(2),
-            grade = studentsReader.IsDBNull(3) ? (decimal?)null : studentsReader.GetDecimal(3)
-        });
-    }
-    
-    var result = new
-    {
-        course = course,
-        students = students
-    };
-    
-    return Results.Ok(new { success = true, data = result });
-});
+            students.Add(new
+            {
+                student_id = studentsReader.GetInt32(0),
+                student_name = studentsReader.GetString(1),
+                email = studentsReader.GetString(2),
+                grade = studentsReader.IsDBNull(3) ? (decimal?)null : studentsReader.GetDecimal(3)
+            });
+        }
+        
+        var statistics = new
+        {
+            average_grade = averageGrade,
+            modal_grade = modalGrade,
+            median_grade = medianGrade,
+            min_grade = minGrade,
+            max_grade = maxGrade,
+            total_grades = totalGrades
+        };
+        
+        var result = new
+        {
+            course = course,
+            students = students,
+            statistics = statistics
+        };
+        
+        return Results.Ok(new { success = true, data = result });
+    });
 
     // Professor course details endpoint
     app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>

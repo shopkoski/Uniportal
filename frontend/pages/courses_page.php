@@ -1162,58 +1162,86 @@ function showCourseDetails(courseId) {
 function displayCourseDetails(data) {
     const course = data.course;
     const students = data.students;
+    const statistics = data.statistics;
     
-    document.getElementById('modalTitle').textContent = t('course_details');
+    document.getElementById('modalTitle').textContent = course.course_name;
     
     const modalBody = document.getElementById('modalBody');
     
     let html = `
         <div class="course-info">
             <div class="info-item">
-                <span class="info-label">${t('course_id')}</span>
+                <span class="info-label">Course ID:</span>
                 <span class="info-value">${course.course_id}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('credits')}</span>
+                <span class="info-label">Credits:</span>
                 <span class="info-value">${course.credits}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('professor')}</span>
-                <span class="info-value">${course.professor_name || t('not_assigned')}</span>
+                <span class="info-label">Professor:</span>
+                <span class="info-value">${course.professor_name || 'Not assigned'}</span>
             </div>
-            <div class="info-item">
-                <span class="info-label">${t('department')}</span>
-                <span class="info-value">${course.department || t('not_assigned')}</span>
+        </div>
+        
+        <div class="grade-statistics">
+            <h3>Grade Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Average Grade:</span>
+                    <span class="stat-value">${statistics.average_grade ? statistics.average_grade.toFixed(2) : 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Modal Grade:</span>
+                    <span class="stat-value">${statistics.modal_grade || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Median Grade:</span>
+                    <span class="stat-value">${statistics.median_grade || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Min Grade:</span>
+                    <span class="stat-value">${statistics.min_grade || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Max Grade:</span>
+                    <span class="stat-value">${statistics.max_grade || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Grades:</span>
+                    <span class="stat-value">${statistics.total_grades || 0}</span>
+                </div>
             </div>
         </div>
         
         <div class="students-section">
-            <h3>${t('enrolled_students')} (${students.length})</h3>
+            <h3>Enrolled Students (${students.length})</h3>
             <table class="students-table">
                 <thead>
                     <tr>
-                        <th>${t('student_id')}</th>
-                        <th>${t('full_name')}</th>
-                        <th>${t('email')}</th>
-                        <th>${t('grade')}</th>
-                        <th>${t('letter_grade')}</th>
+                        <th>Student ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Grade</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
     
-    students.forEach(student => {
-        const gradeClass = getGradeClass(student.letter_grade);
-        html += `
-            <tr>
-                <td>${student.student_id}</td>
-                <td>${student.student_name}</td>
-                <td>${student.student_email}</td>
-                <td>${student.grade}</td>
-                <td><span class="grade-badge ${gradeClass}">${student.letter_grade}</span></td>
-            </tr>
-        `;
-    });
+    if (Array.isArray(students) && students.length > 0) {
+        students.forEach(student => {
+            html += `
+                <tr>
+                    <td>${student.student_id}</td>
+                    <td>${student.student_name}</td>
+                    <td>${student.email || 'N/A'}</td>
+                    <td>${student.grade || 'N/A'}</td>
+                </tr>
+            `;
+        });
+    } else {
+        html += `<tr><td colspan="4">No students enrolled in this course.</td></tr>`;
+    }
     
     html += `
                 </tbody>
@@ -1284,5 +1312,66 @@ document.addEventListener('keydown', function(event) {
     // Periodically check user role
     setInterval(checkUserRole, 1000);
     </script>
+
+    <style>
+    .grade-statistics {
+        margin: 20px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .grade-statistics h3 {
+        margin: 0 0 15px 0;
+        color: #495057;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .stat-label {
+        font-weight: 500;
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: #495057;
+        font-size: 16px;
+        background: #e3f2fd;
+        padding: 4px 8px;
+        border-radius: 4px;
+        min-width: 40px;
+        text-align: center;
+    }
+    
+    .stat-item:nth-child(2) .stat-value {
+        background: #fff3e0;
+        color: #e65100;
+    }
+    
+    .stat-item:nth-child(3) .stat-value {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+    </style>
 </body>
 </html>
