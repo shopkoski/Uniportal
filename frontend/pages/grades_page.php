@@ -955,7 +955,12 @@ function displayGrades(grades, isAdmin) {
     const container = document.getElementById('gradesContainer');
     
     if (!grades || grades.length === 0) {
-        container.innerHTML = '<p>No grades available.</p>';
+        const user = Auth.getUser();
+        if (user && user.role === 'Student') {
+            container.innerHTML = '<p>You are not enrolled in any courses yet. Contact your advisor to enroll in courses.</p>';
+        } else {
+            container.innerHTML = '<p>No grades available.</p>';
+        }
         return;
     }
     
