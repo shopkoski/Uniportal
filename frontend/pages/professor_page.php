@@ -353,14 +353,15 @@ $professors = [];
 
         .modal-content {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            margin: 3% auto;
+            margin: 2% auto;
             padding: 0;
             border-radius: 20px;
-            width: 90%;
-            max-width: 900px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
             box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
             animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            overflow: hidden;
+            overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.2);
         }
 
