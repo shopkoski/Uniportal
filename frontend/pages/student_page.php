@@ -1295,7 +1295,7 @@ function displayStudentCourseDetails(data) {
     
     // Determine if user can see grades
     const canSeeGrades = (userRole === 'Admin') || 
-                        (userRole === 'Student' && userEmail === student.student_email);
+                        (userRole === 'Student' && userEmail === student.email);
     
     document.getElementById('modalTitle').textContent = `${student.student_name} - ${t('course_details')}`;
     
@@ -1304,50 +1304,48 @@ function displayStudentCourseDetails(data) {
     let html = `
         <div class="student-info">
             <div class="info-item">
-                <span class="info-label">${t('student_id')}</span>
+                <span class="info-label">Student ID:</span>
                 <span class="info-value">${student.student_id}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('full_name')}</span>
+                <span class="info-label">Full Name:</span>
                 <span class="info-value">${student.student_name}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('email')}</span>
-                <span class="info-value">${student.student_email}</span>
+                <span class="info-label">Email:</span>
+                <span class="info-value">${student.email}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('enrollment_year')}</span>
+                <span class="info-label">Enrollment Year:</span>
                 <span class="info-value">${student.enrollment_year}</span>
             </div>
         </div>
         
         <div class="courses-section">
-            <h3>${t('enrolled_courses')} (${courses.length})</h3>
+            <h3>Enrolled Courses (${courses.length})</h3>
             <table class="courses-table">
                 <thead>
                     <tr>
-                        <th>${t('course')}</th>
-                        <th>${t('credits')}</th>
-                        ${canSeeGrades ? `<th>${t('grade')}</th><th>${t('letter_grade')}</th>` : ''}
-                        <th>${t('professor')}</th>
-                        <th>${t('professor_email')}</th>
+                        <th>Course</th>
+                        <th>Credits</th>
+                        ${canSeeGrades ? `<th>Grade</th>` : ''}
+                        <th>Professor</th>
+                        <th>Professor Email</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
     
     courses.forEach(course => {
-        const gradeClass = getGradeClass(course.letter_grade);
         const gradeDisplay = course.grade !== null ? course.grade : 'N/A';
-        const gradeBadge = course.letter_grade !== null ? `<span class="grade-badge ${gradeClass}">${course.letter_grade}</span>` : 'N/A';
         
         html += `
             <tr>
                 <td>${course.course_name}</td>
                 <td>${course.credits}</td>
-                ${canSeeGrades ? `<td>${gradeDisplay}</td><td>${gradeBadge}</td>` : ''}
-                <td>${course.professor_name || t('not_assigned')}</td>
-                <td>${course.professor_email || t('not_assigned')}</td>
+                ${canSeeGrades ? `<td>${gradeDisplay}</td>` : ''}
+                <td>${course.professor_name || 'Not assigned'}</td>
+                <td>${course.professor_email || 'Not assigned'}</td>
             </tr>
         `;
     });
