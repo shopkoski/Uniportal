@@ -209,7 +209,7 @@ app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
         var studentSql = @"SELECT 
             student_id,
             first_name + ' ' + last_name as student_name,
-            ISNULL(email, 'N/A') as email,
+            email,
             enrollment_year
         FROM Students_Table_1 
         WHERE student_id = @studentId";
@@ -397,7 +397,7 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
         var studentsSql = @"SELECT DISTINCT
             s.student_id,
             s.first_name + ' ' + s.last_name as student_name,
-            ISNULL(s.email, 'N/A') as email,
+            s.email,
             e.grade
         FROM Enrollments_Table_1 e
         JOIN Students_Table_1 s ON e.student_id = s.student_id
@@ -457,8 +457,8 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
             professor_id = professorReader.GetInt32(0),
             first_name = professorReader.GetString(1),
             last_name = professorReader.GetString(2),
-            email = professorReader.IsDBNull(3) ? null : professorReader.GetString(3),
-            department = professorReader.IsDBNull(4) ? null : professorReader.GetString(4)
+            email = professorReader.GetString(3),
+            department = professorReader.GetString(4)
         };
         
         professorReader.Close();

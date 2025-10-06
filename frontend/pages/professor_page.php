@@ -1070,7 +1070,7 @@ function displayProfessorCourseDetails(data) {
         <div class="professor-info">
             <div class="info-item">
                 <span class="info-label">Professor ID:</span>
-                <span class="info-value">${professor.professor_id || 'N/A'}</span>
+                <span class="info-value">${professor.professor_id}</span>
             </div>
             <div class="info-item">
                 <span class="info-label">Full Name:</span>
@@ -1078,11 +1078,11 @@ function displayProfessorCourseDetails(data) {
             </div>
             <div class="info-item">
                 <span class="info-label">Email:</span>
-                <span class="info-value">${professor.email || 'N/A'}</span>
+                <span class="info-value">${professor.email}</span>
             </div>
             <div class="info-item">
                 <span class="info-label">Department:</span>
-                <span class="info-value">${professor.department || 'N/A'}</span>
+                <span class="info-value">${professor.department}</span>
             </div>
         </div>
         
