@@ -347,74 +347,49 @@ $professors = [];
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
+            background-color: rgba(0,0,0,0.5);
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            margin: 2% auto;
+            background-color: #fefefe;
+            margin: 5% auto;
             padding: 0;
-            border-radius: 20px;
-            width: 95%;
-            max-width: 1200px;
-            max-height: 90vh;
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-            animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-radius: 8px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
             overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
 
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             color: white;
-            padding: 25px 30px 20px 30px;
-            margin: 0;
-            border-bottom: none;
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px 24px;
+            border-radius: 8px 8px 0 0;
         }
 
-        .modal-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: white;
+        .modal-header h2 {
             margin: 0;
-            letter-spacing: 0.5px;
+            font-size: 1.5rem;
         }
 
         .close {
-            color: rgba(255,255,255,0.8);
-            font-size: 24px;
-            font-weight: 300;
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            line-height: 1;
         }
 
         .close:hover {
-            color: white;
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.1);
+            color: #000;
+        }
+
+        .modal-body {
+            padding: 24px;
         }
 
         .form-group {
