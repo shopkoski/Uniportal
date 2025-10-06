@@ -909,8 +909,7 @@ function loadAllGrades() {
 }
 
 function loadStudentGrades(userEmail) {
-    // First get the student ID for this user
-    // For now, show all grades for students too (until per-student endpoint is added)
+    console.log('Loading grades for student email:', userEmail);
     fetch('https://uniportal-b0gvf6bfhcf3bpck.canadacentral-01.azurewebsites.net/api/grades')
         .then(response => {
             if (!response || !response.ok) {
@@ -924,26 +923,27 @@ function loadStudentGrades(userEmail) {
                 return;
             }
             
-            if (!data.student_id) {
-                document.getElementById('gradesContainer').innerHTML = '<p>Student not found.</p>';
-                return;
-            }
+            console.log('All grades data:', data.data);
             
-            // Now get the student's grades
-            return Promise.resolve(new Response(JSON.stringify({ data: [] }), { headers: { 'Content-Type': 'application/json' } }));
-        })
-        .then(response => {
-            if (!response || !response.ok) {
-                throw new Error(`HTTP error! status: ${response ? response.status : 'No response'}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                document.getElementById('gradesContainer').innerHTML = `<p>Error: ${data.error}</p>`;
-                return;
-            }
-            displayGrades(data.data, false);
+            // Filter grades for this student by email
+            const studentGrades = data.data.filter(grade => {
+                // Try multiple matching strategies
+                const emailName = userEmail.split('@')[0].toLowerCase();
+                const studentName = grade.student_name ? grade.student_name.toLowerCase() : '';
+                
+                // Match by email name in student name
+                const nameMatch = studentName.includes(emailName);
+                
+                // Also try to match by exact email if available
+                const emailMatch = grade.student_email && grade.student_email.toLowerCase() === userEmail.toLowerCase();
+                
+                console.log(`Checking grade for ${grade.student_name}: nameMatch=${nameMatch}, emailMatch=${emailMatch}`);
+                
+                return nameMatch || emailMatch;
+            });
+            
+            console.log('Filtered student grades:', studentGrades);
+            displayGrades(studentGrades, false);
         })
         .catch(error => {
             console.error('Error loading student grades:', error);
