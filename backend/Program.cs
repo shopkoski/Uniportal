@@ -87,34 +87,34 @@ app.MapGet("/api/students", async (HttpContext ctx) =>
     return Results.Ok(new { success = true, data = results });
 });
 
-app.MapGet("/api/courses", async () =>
-{
-    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new SqlConnection(connStr);
-    await conn.OpenAsync();
-    var sql = @"SELECT 
-        c.course_id, 
-        c.course_name, 
-        c.credits,
-        COUNT(e.student_id) as enrolled_students
-    FROM Courses_Table_1 c
-    LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
-    GROUP BY c.course_id, c.course_name, c.credits";
-    var cmd = new SqlCommand(sql, conn);
-    var reader = await cmd.ExecuteReaderAsync();
-    var results = new List<object>();
-    while (await reader.ReadAsync())
+    app.MapGet("/api/courses", async () =>
     {
-        results.Add(new
+        var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+        await using var conn = new SqlConnection(connStr);
+        await conn.OpenAsync();
+        var sql = @"SELECT 
+            c.course_id, 
+            c.course_name, 
+            c.credits,
+            COUNT(DISTINCT e.student_id) as enrolled_students
+        FROM Courses_Table_1 c
+        LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
+        GROUP BY c.course_id, c.course_name, c.credits";
+        var cmd = new SqlCommand(sql, conn);
+        var reader = await cmd.ExecuteReaderAsync();
+        var results = new List<object>();
+        while (await reader.ReadAsync())
         {
-            course_id = reader.GetInt32(0),
-            course_name = reader.GetString(1),
-            credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
-            enrolled_students = reader.GetInt32(3)
-        });
-    }
-    return Results.Ok(new { success = true, data = results });
-});
+            results.Add(new
+            {
+                course_id = reader.GetInt32(0),
+                course_name = reader.GetString(1),
+                credits = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+                enrolled_students = reader.GetInt32(3)
+            });
+        }
+        return Results.Ok(new { success = true, data = results });
+    });
 
 app.MapGet("/api/professors", async () =>
 {
@@ -205,14 +205,14 @@ app.MapGet("/api/students/{studentId}/courses", async (int studentId) =>
     await using var conn = new SqlConnection(connStr);
     await conn.OpenAsync();
     
-    // First get student info
-    var studentSql = @"SELECT 
-        student_id,
-        first_name + ' ' + last_name as student_name,
-        email,
-        enrollment_year
-    FROM Students_Table_1 
-    WHERE student_id = @studentId";
+        // First get student info
+        var studentSql = @"SELECT 
+            student_id,
+            first_name + ' ' + last_name as student_name,
+            ISNULL(email, 'N/A') as email,
+            enrollment_year
+        FROM Students_Table_1 
+        WHERE student_id = @studentId";
     var studentCmd = new SqlCommand(studentSql, conn);
     studentCmd.Parameters.AddWithValue("@studentId", studentId);
     var studentReader = await studentCmd.ExecuteReaderAsync();
@@ -393,15 +393,15 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
     
     courseReader.Close();
     
-    // Then get enrolled students (remove duplicates)
-    var studentsSql = @"SELECT DISTINCT
-        s.student_id,
-        s.first_name + ' ' + s.last_name as student_name,
-        s.email,
-        e.grade
-    FROM Enrollments_Table_1 e
-    JOIN Students_Table_1 s ON e.student_id = s.student_id
-    WHERE e.course_id = @courseId";
+        // Then get enrolled students (remove duplicates)
+        var studentsSql = @"SELECT DISTINCT
+            s.student_id,
+            s.first_name + ' ' + s.last_name as student_name,
+            ISNULL(s.email, 'N/A') as email,
+            e.grade
+        FROM Enrollments_Table_1 e
+        JOIN Students_Table_1 s ON e.student_id = s.student_id
+        WHERE e.course_id = @courseId";
     var studentsCmd = new SqlCommand(studentsSql, conn);
     studentsCmd.Parameters.AddWithValue("@courseId", courseId);
     var studentsReader = await studentsCmd.ExecuteReaderAsync();
@@ -427,37 +427,75 @@ app.MapGet("/api/courses/{courseId}/details", async (int courseId) =>
     return Results.Ok(new { success = true, data = result });
 });
 
-// Professor course details endpoint
-app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
-{
-    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-    await using var conn = new SqlConnection(connStr);
-    await conn.OpenAsync();
-    var sql = @"SELECT DISTINCT
-        c.course_id,
-        c.course_name,
-        c.credits,
-        COUNT(e.student_id) as enrolled_students
-    FROM Courses_Table_1 c
-    LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
-    WHERE c.professor_id = @professorId
-    GROUP BY c.course_id, c.course_name, c.credits";
-    var cmd = new SqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@professorId", professorId);
-    var reader = await cmd.ExecuteReaderAsync();
-    var results = new List<object>();
-    while (await reader.ReadAsync())
+    // Professor course details endpoint
+    app.MapGet("/api/professors/{professorId}/courses", async (int professorId) =>
     {
-        results.Add(new
+        var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+        await using var conn = new SqlConnection(connStr);
+        await conn.OpenAsync();
+        
+        // First get professor details
+        var professorSql = @"SELECT 
+            professor_id,
+            first_name,
+            last_name,
+            email,
+            department
+        FROM Professors_Table_1 
+        WHERE professor_id = @professorId";
+        var professorCmd = new SqlCommand(professorSql, conn);
+        professorCmd.Parameters.AddWithValue("@professorId", professorId);
+        var professorReader = await professorCmd.ExecuteReaderAsync();
+        
+        if (!await professorReader.ReadAsync())
         {
-            course_id = reader.GetInt32(0),
-            course_name = reader.GetString(1),
-            credits = reader.GetInt32(2),
-            enrolled_students = reader.GetInt32(3)
-        });
-    }
-    return Results.Ok(new { success = true, data = results });
-});
+            return Results.NotFound(new { success = false, message = "Professor not found" });
+        }
+        
+        var professor = new
+        {
+            professor_id = professorReader.GetInt32(0),
+            first_name = professorReader.GetString(1),
+            last_name = professorReader.GetString(2),
+            email = professorReader.IsDBNull(3) ? null : professorReader.GetString(3),
+            department = professorReader.IsDBNull(4) ? null : professorReader.GetString(4)
+        };
+        
+        professorReader.Close();
+        
+        // Then get courses
+        var coursesSql = @"SELECT DISTINCT
+            c.course_id,
+            c.course_name,
+            c.credits,
+            COUNT(e.student_id) as enrolled_students
+        FROM Courses_Table_1 c
+        LEFT JOIN Enrollments_Table_1 e ON c.course_id = e.course_id
+        WHERE c.professor_id = @professorId
+        GROUP BY c.course_id, c.course_name, c.credits";
+        var coursesCmd = new SqlCommand(coursesSql, conn);
+        coursesCmd.Parameters.AddWithValue("@professorId", professorId);
+        var coursesReader = await coursesCmd.ExecuteReaderAsync();
+        var courses = new List<object>();
+        while (await coursesReader.ReadAsync())
+        {
+            courses.Add(new
+            {
+                course_id = coursesReader.GetInt32(0),
+                course_name = coursesReader.GetString(1),
+                credits = coursesReader.GetInt32(2),
+                enrolled_students = coursesReader.GetInt32(3)
+            });
+        }
+        
+        var result = new
+        {
+            professor = professor,
+            courses = courses
+        };
+        
+        return Results.Ok(new { success = true, data = result });
+    });
 
 app.Run();
 

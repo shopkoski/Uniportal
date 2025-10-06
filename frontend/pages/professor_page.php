@@ -1049,12 +1049,8 @@ function showProfessorCourseDetails(professorId) {
                 return;
             }
             
-            // Transform the API response to match what displayProfessorCourseDetails expects
-            const transformedData = {
-                professor: { professor_name: "Professor" }, // We'll get this from the professors list
-                courses: data.data || []
-            };
-            displayProfessorCourseDetails(transformedData);
+                // The new API returns {professor: {...}, courses: [...]} in data.data
+                displayProfessorCourseDetails(data.data);
         })
         .catch(error => {
             console.log('Professor course details error:', error);
@@ -1066,38 +1062,38 @@ function displayProfessorCourseDetails(data) {
     const professor = data.professor;
     const courses = data.courses;
     
-    document.getElementById('modalTitle').textContent = `${professor.professor_name} - ${t('course_details')}`;
+    document.getElementById('modalTitle').textContent = `${professor.first_name} ${professor.last_name} - Course Details`;
     
     const modalBody = document.getElementById('modalBody');
     
     let html = `
         <div class="professor-info">
             <div class="info-item">
-                <span class="info-label">${t('professor_id')}</span>
-                <span class="info-value">${professor.professor_id}</span>
+                <span class="info-label">Professor ID:</span>
+                <span class="info-value">${professor.professor_id || 'N/A'}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('full_name')}</span>
-                <span class="info-value">${professor.professor_name}</span>
+                <span class="info-label">Full Name:</span>
+                <span class="info-value">${professor.first_name} ${professor.last_name}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('email')}</span>
-                <span class="info-value">${professor.professor_email}</span>
+                <span class="info-label">Email:</span>
+                <span class="info-value">${professor.email || 'N/A'}</span>
             </div>
             <div class="info-item">
-                <span class="info-label">${t('department')}</span>
-                <span class="info-value">${professor.department}</span>
+                <span class="info-label">Department:</span>
+                <span class="info-value">${professor.department || 'N/A'}</span>
             </div>
         </div>
         
         <div class="courses-section">
-            <h3>${t('courses_taught_count')} (${courses.length})</h3>
+            <h3>Courses Taught (${courses.length})</h3>
             <table class="courses-table">
                 <thead>
                     <tr>
-                        <th>${t('course')}</th>
-                        <th>${t('credits')}</th>
-                        <th>${t('enrolled_students')}</th>
+                        <th>Course</th>
+                        <th>Credits</th>
+                        <th>Enrolled Students</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1108,7 +1104,7 @@ function displayProfessorCourseDetails(data) {
             <tr>
                 <td>${course.course_name}</td>
                 <td>${course.credits}</td>
-                <td><span class="enrollment-count">${course.enrolled_students} ${t('students')}</span></td>
+                <td><span class="enrollment-count">${course.enrolled_students} students</span></td>
             </tr>
         `;
     });
