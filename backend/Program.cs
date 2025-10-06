@@ -396,7 +396,7 @@ app.MapDelete("/api/professors/{id}", async (int id) =>
         // Get grade statistics (modal and median)
         var statsSql = @"SELECT 
             AVG(CAST(e.grade AS FLOAT)) as average_grade,
-            COUNT(*) as total_grades,
+            COUNT(DISTINCT e.student_id) as total_grades,
             MIN(e.grade) as min_grade,
             MAX(e.grade) as max_grade
         FROM Enrollments_Table_1 e
@@ -419,10 +419,11 @@ app.MapDelete("/api/professors/{id}", async (int id) =>
         }
         statsReader.Close();
         
-        // Get all grades for modal and median calculation
-        var gradesSql = @"SELECT DISTINCT e.grade
+        // Get all grades for modal and median calculation (use distinct student_id to avoid duplicates)
+        var gradesSql = @"SELECT e.grade
         FROM Enrollments_Table_1 e
         WHERE e.course_id = @courseId AND e.grade IS NOT NULL
+        GROUP BY e.student_id, e.grade
         ORDER BY e.grade";
         var gradesCmd = new SqlCommand(gradesSql, conn);
         gradesCmd.Parameters.AddWithValue("@courseId", courseId);
